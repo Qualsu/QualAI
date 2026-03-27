@@ -1,0 +1,8 @@
+transformers>=4.30.0
+torch
+accelerate
+sentencepiece
+safetensors
+huggingface-hub
+fastapi
+uvicorn

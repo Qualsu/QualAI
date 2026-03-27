@@ -1,0 +1,48 @@
+{
+  "1": [
+    {
+      "role": "user",
+      "content": "hi"
+    },
+    {
+      "role": "assistant",
+      "content": "Hello! How can I assist you today?"
+    }
+  ],
+  "cf099fce-9b15-4efc-ac9e-42b2c825d511": [
+    {
+      "role": "user",
+      "content": "Привет, как зовут?"
+    },
+    {
+      "role": "assistant",
+      "content": "Меня зовут Qual AI. Как я могу помочь вам сегодня?"
+    },
+    {
+      "role": "user",
+      "content": "что ты можешь?"
+    },
+    {
+      "role": "assistant",
+      "content": "Я могу помочь с информацией, отвечать на вопросы, играть в игры и многое другое."
+    }
+  ],
+  "0481173b-3cd1-4b0d-8184-b44ff5887531": [
+    {
+      "role": "user",
+      "content": "напиши мне калькулятор на питоне"
+    },
+    {
+      "role": "assistant",
+      "content": "Конечно! Вот простой калькулятор на Python:\n\n```python\ndef add(x, y):\n    return x + y\n\ndef subtract(x, y):\n    return x - y\n\ndef multiply(x, y):\n    return x * y\n\ndef divide(x, y):\n    if y == 0:\n        return \"Ошибка: деление на ноль\"\n    else:\n        return x / y\n\nprint(\"Выберите операцию:\")\nprint(\"1. Сложение\")\nprint(\"2. Вычитание\")\nprint(\"3. Умножение\")\nprint(\"4. Деление\")\n\nwhile True:\n    choice = input(\"Введите номер операции (1/2/3/4): \")\n\n    if choice in ['1', '2', '3', '4']:\n        try:\n            num1 = float(input(\"Введите первое число: \"))\n            num2 = float(input(\"Введите второе"
+    },
+    {
+      "role": "user",
+      "content": "ты код не дописал"
+    },
+    {
+      "role": "assistant",
+      "content": "Конечно, я допишу код калькулятора на Python:\n\n```python\ndef add(x, y):\n    return x + y\n\ndef subtract(x, y):\n    return x - y\n\ndef multiply(x, y):\n    return x * y\n\ndef divide(x, y):\n    if y == 0:\n        return \"Ошибка: деление на ноль\"\n    else:\n        return x / y\n\nprint(\"Выберите операцию:\")\nprint(\"1. Сложение\")\nprint(\"2. Вычитание\")\nprint(\"3. Умножение\")\nprint(\"4. Деление\")\n\nwhile True:\n    choice = input(\"Введите номер операции (1/2/3/4): \")\n\n    if choice in ['1', '2', '3', '4']:\n        try:\n            num1 = float(input(\"Введите первое число: \"))\n            num2 = float(input(\"Введите второе число: \"))\n        except ValueError:\n            print(\"Ошибка: введите числа!\")\n            continue\n\n        if choice == '1':\n            print(f\"{num1} + {num2} = {add(num1, num2)}\")\n\n        elif choice == '2':\n            print(f\"{num1} - {num2} = {subtract(num1, num2)}\")\n\n        elif choice == '3':\n            print(f\"{num1} * {num2} = {multiply(num1, num2)}\")\n\n        elif choice == '4':\n            result = divide(num1, num2)\n            print(f\"{num1} / {num2} = {result}\")\n\n    else:\n        print(\"Ошибка: введите правильное число!\")\n\n    next_calculation = input(\"Хотите продолжить? (да/нет): \")\n    if next_calculation.lower()!= 'да':\n        break\n```\n\nЭтот калькулятор позволяет вам выбирать операцию и вводить два числа для выполнения вычислений. Он также обрабатывает ошибки при вводе нечисловых данных."
+    }
+  ]
+}
