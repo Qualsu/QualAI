@@ -1,7 +1,8 @@
 'use client';
 
-import { fetchAvailableModels, sendChatMessage } from "@/app/api/chat";
+import { fetchAvailableModels, fetchSessionHistory, sendChatMessage } from "@/app/api/chat";
 import type { ChatMessage } from "@/app/api/types";
+import ChatPageSkeleton from "@/components/chat-page-skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,13 +14,11 @@ import {
 } from "@/components/ui/select";
 import { useUser } from "@clerk/nextjs";
 import { Send } from "lucide-react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const MODEL_STORAGE_KEY = "chat-model-id";
-
 const TYPING_PLACEHOLDER = "__typing__";
 
 function getModelLabel(modelId: string): string {
@@ -62,9 +61,11 @@ function resolveAssistantReply(responseText: string, history: ChatMessage[]): st
   return lastAssistant?.content ?? "";
 }
 
-export default function Home() {
+export default function Chat() {
   const { user } = useUser();
-  const router = useRouter();
+  const params = useParams<{ sessionId: string }>();
+  const sessionId = params?.sessionId;
+
   const [message, setMessage] = useState("");
   const [model, setModel] = useState("qwen2.5-1.5b-instruct");
   const [models, setModels] = useState<Record<string, string>>({
@@ -72,6 +73,7 @@ export default function Home() {
     "qwen2.5-coder-1.5b-instruct": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
   });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,6 +125,57 @@ export default function Home() {
     }
   }, [model]);
 
+  useEffect(() => {
+    if (!sessionId) {
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadSession = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await fetchSessionHistory({
+          account_id: accountId,
+          session_id: sessionId,
+        });
+
+        if (isMounted) {
+          setMessages(data.history);
+          setError(null);
+        }
+      } catch (error: unknown) {
+        if (isMounted) {
+          setMessages([]);
+          const status =
+            typeof error === "object" &&
+            error !== null &&
+            "response" in error &&
+            typeof (error as { response?: unknown }).response === "object" &&
+            (error as { response?: { status?: number } }).response?.status;
+
+          if (status === 404) {
+            setError(null);
+          } else {
+            setError("Не удалось загрузить историю этого чата.");
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [accountId, sessionId]);
+
   const animateAssistantMessage = async (text: string, modelId?: string) => {
     const targetText = text.trim();
     if (!targetText) {
@@ -165,7 +218,7 @@ export default function Home() {
 
   const handleSend = async () => {
     const trimmedMessage = message.trim();
-    if (!trimmedMessage || isSending) {
+    if (!trimmedMessage || !sessionId || isSending) {
       return;
     }
 
@@ -184,18 +237,18 @@ export default function Home() {
         account_id: accountId,
         message: trimmedMessage,
         model_id: model,
+        session_id: sessionId,
       });
 
       const assistantReply = resolveAssistantReply(response.response, response.history);
       await animateAssistantMessage(assistantReply, response.model_id);
 
+      setModel(response.model_id);
+
 
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
       }
-
-      setModel(response.model_id);
-      router.push(`/${response.session_id}`);
     } catch {
       setMessages((prev) => prev.slice(0, -1));
       setError("Не удалось отправить сообщение. Проверь API и попробуй снова.");
@@ -203,6 +256,10 @@ export default function Home() {
       setIsSending(false);
     }
   };
+
+  if (isLoading) {
+    return <ChatPageSkeleton />;
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col text-neutral-100">
@@ -224,9 +281,9 @@ export default function Home() {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
         {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center gap-4">
-            <Image src="/mini-logo.svg" width={50} height={50} alt="Qual AI mini logo" />
-            <h1 className="text-5xl font-bold text-center text-neutral-100">Чем могу помочь?</h1>
+          <div className="h-full flex flex-col items-center justify-center text-center gap-2">
+            <h1 className="text-4xl font-bold text-neutral-100">Чем могу помочь?</h1>
+            <p className="text-neutral-400">История чата пока пустая, отправь первое сообщение.</p>
           </div>
         ) : (
           <div className="max-w-4xl mx-auto flex flex-col gap-4">
@@ -261,13 +318,13 @@ export default function Home() {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Сообщение..."
-            disabled={isSending}
+            disabled={isLoading || isSending || !sessionId}
             className="flex-1 bg-neutral-800 text-neutral-100 px-4 py-3 rounded-lg border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-600 placeholder-neutral-500"
           />
           <Button
             onClick={handleSend}
             size="icon"
-            disabled={isSending}
+            disabled={isLoading || isSending || !sessionId}
             className="rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-100"
           >
             <Send size={20} />

@@ -48,6 +48,10 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+.cl-modalBackdrop {
+  background: rgb(0 0 0 / 0.7) !important;
+}
+
 .cl-internal-1k7jtru, .cl-internal-15hkgn2 {
   background: none;
 }
