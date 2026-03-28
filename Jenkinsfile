@@ -4,7 +4,6 @@ pipeline {
   environment {
     IMAGE_NAME = 'qual-ai-app'
     CONTAINER_NAME = 'qual-ai-app'
-    DATA_DIR = '/opt/qual-ai/data'
     CERT_DIR = '/etc/letsencrypt/live/db.api.qual.su'
     NEXT_PUBLIC_API = "${env.NEXT_PUBLIC_API ?: '/api'}"
   }
@@ -43,7 +42,8 @@ pipeline {
       steps {
         sh '''
           set -eu
-          mkdir -p "${DATA_DIR}/models"
+          APP_DATA_DIR="${DATA_DIR:-$HOME/qual-ai/data}"
+          mkdir -p "${APP_DATA_DIR}/models"
 
           docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 
@@ -57,7 +57,7 @@ pipeline {
             -e DATA_DIR=/data \
             -e MODELS_DIR=/data/models \
             -e HISTORY_FILE=/data/chat_history.json \
-            -v "${DATA_DIR}:/data" \
+            -v "${APP_DATA_DIR}:/data" \
             -v "${CERT_DIR}/privkey.pem:/etc/letsencrypt/live/db.api.qual.su/privkey.pem:ro" \
             -v "${CERT_DIR}/fullchain.pem:/etc/letsencrypt/live/db.api.qual.su/fullchain.pem:ro" \
             "${IMAGE_NAME}:latest"
