@@ -1,11 +1,6 @@
 pipeline {
   agent any
 
-  options {
-    timestamps()
-    ansiColor('xterm')
-  }
-
   environment {
     IMAGE_NAME = 'qual-ai-app'
     CONTAINER_NAME = 'qual-ai-app'
