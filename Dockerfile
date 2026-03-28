@@ -32,7 +32,7 @@ COPY --from=frontend-builder /app/next.config.ts ./next.config.ts
 COPY --from=frontend-builder /app/server ./server
 COPY --from=frontend-builder /app/docker ./docker
 
-RUN pip3 install --no-cache-dir -r /app/server/requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r /app/server/requirements.txt
 
 RUN chmod +x /app/docker/start.sh \
     && rm -f /etc/nginx/sites-enabled/default /etc/nginx/nginx.conf \
