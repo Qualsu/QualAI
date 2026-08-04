@@ -1,3 +1,5 @@
+echo "Starting Jenkinsfile parsing..."
+
 pipeline {
   agent any
 
@@ -13,7 +15,7 @@ pipeline {
         sh '''
           set -eu
           if [ -z "${HF_TOKEN:-}" ]; then
-            echo "HF_TOKEN is not set in Jenkins environment (Optional if not loading restricted models)"
+            echo "HF_TOKEN is not set in Jenkins environment (Optional)"
           fi
           if [ ! -f "${CERT_DIR}/privkey.pem" ] || [ ! -f "${CERT_DIR}/fullchain.pem" ]; then
             echo "LetsEncrypt certs not found in ${CERT_DIR}" >&2
