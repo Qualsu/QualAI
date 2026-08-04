@@ -1,3 +1,28 @@
-.cl-internal-1dauvpw{
-    display: none;
+[class^="cl-"], [class*=" cl-"], [data-clerk], .clerk, .clerk-root {
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+.cl-internal-1dauvpw,
+.cl-internal-1k7jtru,
+.cl-internal-15hkgn2,
+.cl-internal-fcx671,
+.cl-internal-1j1lbor,
+.cl-internal-1fpq5at,
+.cl-internal-ej8kgm,
+.cl-internal-b3fm6y,
+.cl-internal-115m8i7,
+.cl-internal-phfxlr,
+.cl-internal-12n04a2,
+.cl-internal-1t0i2e4,
+.cl-internal-13hl4in,
+.cl-devModeBanner,
+.cl-dev-mode,
+.cl-badge--development,
+[data-localization-key*="developmentMode"],
+[data-localization-key="developmentMode.badge"],
+[class*="developmentMode"],
+[class*="DevelopmentMode"],
+[class*="watermark"],
+[class*="Watermark"] {
+  display: none !important;
 }

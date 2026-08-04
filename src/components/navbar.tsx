@@ -19,9 +19,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
-import { Separator } from "./ui/separator";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 
@@ -155,111 +153,125 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
     };
 
     return (
-        <nav className={`fixed left-0 top-0 h-full bg-neutral-900 text-neutral-100 flex flex-col gap-4 shadow-lg transition-all duration-300 z-50 w-72 p-4 ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${isCollapsed ? "md:w-20 md:p-3" : "md:w-72 md:p-4"}`}>
+        <nav className={`fixed left-0 top-0 h-full bg-[#191118]/85 backdrop-blur-2xl text-white flex flex-col gap-4 border-r border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-300 z-50 w-72 p-4 ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${isCollapsed ? "md:w-20 md:p-3" : "md:w-72 md:p-4"}`}>
             <div className={`flex items-center ${!showFull ? "justify-center" : "justify-between"}`}>
                 {showFull && (
-                    <Image src="/logo.png" width={160} height={36} alt="Qual AI logo" className="object-contain" />
+                    <button
+                        type="button"
+                        onClick={() => { router.push("/"); onMobileClose(); }}
+                        className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer text-left"
+                    >
+                        <Image src="/logo.png" width={140} height={32} alt="Qual AI logo" className="object-contain drop-shadow-[0_4px_12px_rgba(168,85,247,0.25)]" />
+                    </button>
                 )}
                 {/* Desktop: collapse toggle */}
                 <button
                     type="button"
                     onClick={onToggle}
-                    className="hidden md:inline-flex items-center justify-center rounded-md p-1 text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                    className="hidden md:inline-flex items-center justify-center rounded-xl p-1.5 text-white/70 border border-white/10 bg-white/[0.04] hover:bg-white/[0.1] hover:text-white hover:border-white/25 transition-all"
                     aria-label={isCollapsed ? "Развернуть панель" : "Свернуть панель"}
                 >
-                    {isCollapsed ? <ChevronLastIcon /> : <ChevronFirstIcon />}
+                    {isCollapsed ? <ChevronLastIcon size={18} /> : <ChevronFirstIcon size={18} />}
                 </button>
                 {/* Mobile: close button */}
                 <button
                     type="button"
                     onClick={onMobileClose}
-                    className="md:hidden inline-flex items-center justify-center rounded-md p-1 text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                    className="md:hidden inline-flex items-center justify-center rounded-xl p-1.5 text-white/70 border border-white/10 bg-white/[0.04] hover:bg-white/[0.1] hover:text-white hover:border-white/25 transition-all"
                     aria-label="Закрыть меню"
                 >
-                    <X size={20} />
+                    <X size={18} />
                 </button>
             </div>
 
             <div>
-                <Button
-                    className={`${!showFull ? "w-full justify-center px-0" : "w-full justify-start gap-2"}`}
-                    variant={"outline"}
+                <button
+                    type="button"
+                    className={`primary-button w-full shadow-[0_8px_20px_rgba(0,0,0,0.25)] ${!showFull ? "justify-center px-0 py-2.5" : "justify-start gap-2.5 px-4 py-2.5"}`}
                     onClick={() => { router.push("/"); onMobileClose(); }}
                 >
-                    <Plus />
-                    {showFull && <span>Новый чат</span>}
-                </Button>
+                    <Plus size={18} className="text-purple-300" />
+                    {showFull && <span className="text-sm font-medium">Новый чат</span>}
+                </button>
             </div>
 
-            {showFull && <Separator />}
+            {showFull && <div className="h-px bg-gradient-to-r from-transparent via-white/15 to-transparent my-1" />}
 
             {showFull && (
-                <ul className="flex-1 overflow-y-auto overflow-x-hidden">
-                    <li className="text-sm text-neutral-400 p-2">Все чаты</li>
+                <div className="flex-1 min-h-0 flex flex-col">
+                    <div className="text-xs uppercase tracking-wider text-white/40 px-2 py-1.5 font-medium">История чатов</div>
 
-                    {isLoading && (
-                        <li className="space-y-2 p-2">
-                            <Skeleton className="h-9 w-full" />
-                            <Skeleton className="h-9 w-[92%]" />
-                            <Skeleton className="h-9 w-[85%]" />
-                        </li>
-                    )}
-
-                    {!isLoading && sessions.length === 0 && (
-                        <li className="p-2 text-sm text-neutral-500">Чатов пока нет</li>
-                    )}
-
-                    {sessions.map((session) => {
-                        const isActive = session.sessionId === activeSessionId;
-
-                        return (
-                            <li
-                                key={session.sessionId}
-                                onClick={() => { router.push(`/${session.sessionId}`); onMobileClose(); }}
-                                className={`flex items-center justify-between p-2 m-1 rounded-md cursor-pointer group ${
-                                    isActive ? "bg-neutral-700" : "hover:bg-neutral-800"
-                                }`}
-                                title={session.preview}
-                            >
-                                <span className="truncate flex-1 min-w-0 text-sm">{session.preview}</span>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => e.stopPropagation()}
-                                            disabled={deletingIds.has(session.sessionId)}
-                                            className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-400 transition-opacity disabled:opacity-50"
-                                            aria-label="Удалить чат"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Удалить чат?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Это действие нельзя отменить. Чат будет удалён без возможности восстановления.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Отмена</AlertDialogCancel>
-                                            <AlertDialogAction
-                                                className="bg-red-600 text-white hover:bg-red-700"
-                                                disabled={deletingIds.has(session.sessionId)}
-                                                onClick={() => handleDeleteSession(session.sessionId)}
-                                            >
-                                                Удалить
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                    <ul className="flex-1 overflow-y-auto overflow-x-hidden space-y-1 pr-1">
+                        {isLoading && (
+                            <li className="space-y-2 p-2">
+                                <Skeleton className="h-9 w-full bg-white/[0.05]" />
+                                <Skeleton className="h-9 w-[92%] bg-white/[0.05]" />
+                                <Skeleton className="h-9 w-[85%] bg-white/[0.05]" />
                             </li>
-                        );
-                    })}
-                </ul>
+                        )}
+
+                        {!isLoading && sessions.length === 0 && (
+                            <li className="p-3 text-sm text-white/40 text-center rounded-xl bg-white/[0.02] border border-white/5 my-2">
+                                Чатов пока нет
+                            </li>
+                        )}
+
+                        {sessions.map((session) => {
+                            const isActive = session.sessionId === activeSessionId;
+
+                            return (
+                                <li
+                                    key={session.sessionId}
+                                    onClick={() => { router.push(`/${session.sessionId}`); onMobileClose(); }}
+                                    className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer group transition-all duration-200 border ${
+                                        isActive
+                                            ? "bg-gradient-to-r from-purple-500/20 via-purple-600/15 to-transparent border-purple-400/30 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] font-medium"
+                                            : "text-white/70 hover:text-white border-transparent hover:bg-white/[0.06] hover:border-white/10"
+                                    }`}
+                                    title={session.preview}
+                                >
+                                    <span className="truncate flex-1 min-w-0 text-sm">{session.preview}</span>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => e.stopPropagation()}
+                                                disabled={deletingIds.has(session.sessionId)}
+                                                className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 transition-all p-1 rounded-lg hover:bg-red-500/10 disabled:opacity-50"
+                                                aria-label="Удалить чат"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent onClick={(e) => e.stopPropagation()} className="surface-panel rounded-2xl border-white/15 bg-[#1e131d]/95 backdrop-blur-2xl">
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle className="text-xl font-bold text-white">Удалить чат?</AlertDialogTitle>
+                                                <AlertDialogDescription className="text-white/70">
+                                                    Это действие нельзя отменить. Чат будет удалён без возможности восстановления.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter className="mt-4 gap-2">
+                                                <AlertDialogCancel className="primary-button border-white/15 bg-white/[0.05] hover:bg-white/10 text-white rounded-xl">
+                                                    Отмена
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    className="rounded-xl bg-red-600/80 hover:bg-red-600 text-white border border-red-500/30 transition-all shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+                                                    disabled={deletingIds.has(session.sessionId)}
+                                                    onClick={() => handleDeleteSession(session.sessionId)}
+                                                >
+                                                    Удалить
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
             )}
 
-            <div className={`mt-2 border-t border-neutral-800 pt-3`}>
+            <div className={`mt-auto border-t border-white/10 pt-3`}>
                 <UserMenu isCollapsed={isCollapsed} />
             </div>
         </nav>

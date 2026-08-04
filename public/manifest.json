@@ -1,21 +1,27 @@
 {
   "name": "Qual AI",
   "short_name": "Qual AI",
-  "description": "Qual AI — lorem ipsum dolor sit amet",
+  "description": "Qual AI — Умный искусственный интеллект от команды Qualsu для общения, генерации кода и решения задач.",
   "start_url": "/",
+  "id": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0ea5a4",
+  "orientation": "portrait-primary",
+  "background_color": "#130f14",
+  "theme_color": "#130f14",
+  "categories": ["productivity", "utilities", "developer"],
   "icons": [
     {
       "src": "/icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
