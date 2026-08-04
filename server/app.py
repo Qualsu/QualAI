@@ -179,12 +179,14 @@ async def clear_session(request: SessionRequest) -> ClearSessionResponse:
 
 
 if __name__ == "__main__":
+    use_ssl = ssl_key and ssl_cert and os.path.isfile(ssl_key) and os.path.isfile(ssl_cert)
+    
     uvicorn.run(
         "app:app",
         host="0.0.0.0",
         port=8006,
         reload=True,
         headers=[("server", "Qualsu")],
-        ssl_keyfile=None if os.name == 'nt' else ssl_key,
-        ssl_certfile=None if os.name == 'nt' else ssl_cert
+        ssl_keyfile=ssl_key if use_ssl else None,
+        ssl_certfile=ssl_cert if use_ssl else None
     )

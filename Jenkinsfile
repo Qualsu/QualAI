@@ -34,6 +34,11 @@ node {
       mkdir -p "\${APP_DATA_DIR}/models"
 
       docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+      
+      VOLUMES="-v \${APP_DATA_DIR}:/data"
+      if [ -f "${CERT_DIR}/privkey.pem" ] && [ -f "${CERT_DIR}/fullchain.pem" ]; then
+        VOLUMES="\$VOLUMES -v ${CERT_DIR}/privkey.pem:/etc/letsencrypt/live/db.api.qual.su/privkey.pem:ro -v ${CERT_DIR}/fullchain.pem:/etc/letsencrypt/live/db.api.qual.su/fullchain.pem:ro"
+      fi
 
       docker run -d \
         --name "${CONTAINER_NAME}" \
@@ -47,9 +52,7 @@ node {
         -e VOICY_DB="\${VOICY_DB:-}" \
         -e SSL_KEY="/etc/letsencrypt/live/db.api.qual.su/privkey.pem" \
         -e SSL_CERT="/etc/letsencrypt/live/db.api.qual.su/fullchain.pem" \
-        -v "\${APP_DATA_DIR}:/data" \
-        -v "${CERT_DIR}/privkey.pem:/etc/letsencrypt/live/db.api.qual.su/privkey.pem:ro" \
-        -v "${CERT_DIR}/fullchain.pem:/etc/letsencrypt/live/db.api.qual.su/fullchain.pem:ro" \
+        \$VOLUMES \
         "${IMAGE_NAME}:latest"
     """
   }
