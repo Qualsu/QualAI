@@ -1,4 +1,6 @@
 node {
+  checkout scm
+  
   def IMAGE_NAME = 'qual-ai-backend'
   def CONTAINER_NAME = 'qual-ai-backend'
   def CERT_DIR = '/etc/letsencrypt/live/db.api.qual.su'
