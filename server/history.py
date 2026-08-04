@@ -1,9 +1,22 @@
-from config import HISTORY_FILE
 import json
 import os
 from typing import Dict, List
+from motor.motor_asyncio import AsyncIOMotorClient
+from motor.core import AgnosticCollection
+
 from model import *
-from config import DEFAULT_MODEL_ID, session_started_at, sessions
+from config import DEFAULT_MODEL_ID, session_started_at, sessions, VOICY_DB
+
+def get_collection() -> AgnosticCollection | None:
+    if not VOICY_DB:
+        return None
+    try:
+        client = AsyncIOMotorClient(VOICY_DB)
+        db = client.get_default_database(default="qual_ai")
+        return db["history"]
+    except Exception as e:
+        print(f"MongoDB connection error: {e}")
+        return None
 
 def normalize_history(history: object) -> List[ChatMessage]:
     if not isinstance(history, list):
@@ -27,109 +40,74 @@ def normalize_history(history: object) -> List[ChatMessage]:
 
     return normalized_history
 
-
-def pick_unified_history(session_data: object) -> List[ChatMessage]:
-    if isinstance(session_data, list):
-        return normalize_history(session_data)
-
-    if not isinstance(session_data, dict):
-        return []
-
-    # Compatibility with model-scoped format: {model_id: [messages]}
-    if DEFAULT_MODEL_ID in session_data:
-        return normalize_history(session_data.get(DEFAULT_MODEL_ID))
-
-    for history in session_data.values():
-        normalized = normalize_history(history)
-        if normalized:
-            return normalized
-
-    return []
-
-
-def pick_session_created_at(session_data: object) -> str | None:
-    if not isinstance(session_data, dict):
-        return None
-
-    created_at = session_data.get("created_at")
-    if isinstance(created_at, str) and created_at.strip():
-        return created_at.strip()
-
-    return None
-
-
-def load_history_from_disk() -> Dict[str, Dict[str, List[ChatMessage]]]:
-    if not os.path.exists(HISTORY_FILE):
-        return {}
-
-    try:
-        with open(HISTORY_FILE, "r", encoding="utf-8") as file:
-            data = json.load(file)
-    except (OSError, json.JSONDecodeError):
-        return {}
-
-    if not isinstance(data, dict):
+async def load_history_from_disk() -> Dict[str, Dict[str, List[ChatMessage]]]:
+    collection = get_collection()
+    if collection is None:
         return {}
 
     normalized: Dict[str, Dict[str, List[ChatMessage]]] = {}
     normalized_started_at: Dict[str, Dict[str, str]] = {}
-    legacy_sessions: Dict[str, List[ChatMessage]] = {}
 
-    for account_id, account_data in data.items():
-        if not isinstance(account_id, str):
-            continue
+    try:
+        cursor = collection.find()
+        async for doc in cursor:
+            account_id = doc.get("account_id")
+            session_id = doc.get("session_id")
+            created_at = doc.get("created_at", "")
+            messages = doc.get("history", [])
 
-        # Backward compatibility for old format: {session_id: [messages]}
-        if isinstance(account_data, list):
-            legacy_sessions[account_id] = normalize_history(account_data)
-            continue
-
-        if not isinstance(account_data, dict):
-            continue
-
-        normalized_account_sessions: Dict[str, List[ChatMessage]] = {}
-        normalized_account_started_at: Dict[str, str] = {}
-        for session_id, session_data in account_data.items():
-            if not isinstance(session_id, str):
+            if not account_id or not session_id:
                 continue
+                
+            history = normalize_history(messages)
 
-            session_history = pick_unified_history(session_data)
-            normalized_account_sessions[session_id] = session_history
+            if account_id not in normalized:
+                normalized[account_id] = {}
+                normalized_started_at[account_id] = {}
+                
+            normalized[account_id][session_id] = history
+            normalized_started_at[account_id][session_id] = created_at
 
-            created_at = pick_session_created_at(session_data)
-            if created_at is not None:
-                normalized_account_started_at[session_id] = created_at
-
-        normalized[account_id] = normalized_account_sessions
-        normalized_started_at[account_id] = normalized_account_started_at
-
-    if legacy_sessions:
-        normalized.setdefault("default", {})
-        for session_id, history in legacy_sessions.items():
-            normalized["default"][session_id] = history
-
-    session_started_at.clear()
-    session_started_at.update(normalized_started_at)
+        session_started_at.clear()
+        session_started_at.update(normalized_started_at)
+    except Exception as e:
+        print(f"Error loading from MongoDB: {e}")
 
     return normalized
 
+async def save_session_to_disk(account_id: str, session_id: str) -> None:
+    collection = get_collection()
+    if collection is None:
+        return
+        
+    created_at = session_started_at.get(account_id, {}).get(session_id, "")
+    history = sessions.get(account_id, {}).get(session_id, [])
+    history_dicts = [message.model_dump() for message in history]
+    
+    try:
+        await collection.update_one(
+            {"account_id": account_id, "session_id": session_id},
+            {"$set": {
+                "account_id": account_id,
+                "session_id": session_id,
+                "created_at": created_at,
+                "history": history_dicts
+            }},
+            upsert=True
+        )
+    except Exception as e:
+        print(f"Error saving to MongoDB: {e}")
 
-def save_history_to_disk() -> None:
-    history_dir = os.path.dirname(HISTORY_FILE)
-    if history_dir:
-        os.makedirs(history_dir, exist_ok=True)
+async def delete_session_from_disk(account_id: str, session_id: str) -> None:
+    collection = get_collection()
+    if collection is None:
+        return
+        
+    try:
+        await collection.delete_one({"account_id": account_id, "session_id": session_id})
+    except Exception as e:
+        print(f"Error deleting from MongoDB: {e}")
 
-    temp_file = f"{HISTORY_FILE}.tmp"
-    serializable_sessions = {
-        account_id: {
-            session_id: {
-                "created_at": session_started_at.get(account_id, {}).get(session_id, ""),
-                "history": [message.model_dump() for message in history],
-            }
-            for session_id, history in account_sessions.items()
-        }
-        for account_id, account_sessions in sessions.items()
-    }
-    with open(temp_file, "w", encoding="utf-8") as file:
-        json.dump(serializable_sessions, file, ensure_ascii=False, indent=2)
-    os.replace(temp_file, HISTORY_FILE)
+# Maintain backward compatibility if any other code uses it
+async def save_history_to_disk() -> None:
+    pass

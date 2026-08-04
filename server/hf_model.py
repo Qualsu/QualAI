@@ -1,8 +1,8 @@
 import json
 import os
-import urllib.error
-import urllib.request
+import aiohttp
 from typing import Any, Dict, List, Optional
+import asyncio
 
 from config import DEFAULT_MODEL_ID, OLLAMA_BASE_URL, SUPPORTED_MODELS
 
@@ -50,13 +50,13 @@ class HFChatModel:
     def get_available_models(self) -> Dict[str, str]:
         return dict(self.model_map)
 
-    def warmup_default(self) -> None:
+    async def warmup_default(self) -> None:
         print(f"Qual AI инициализирован. Хост Ollama: {self.base_url}, модель по умолчанию: {self.default_model_id}")
         try:
-            req = urllib.request.Request(f"{self.base_url}/api/tags", method="GET")
-            with urllib.request.urlopen(req, timeout=5) as response:
-                if response.status == 200:
-                    print("Соединение с сервером моделей успешно установлено.")
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{self.base_url}/api/tags", timeout=5) as response:
+                    if response.status == 200:
+                        print("Соединение с сервером моделей успешно установлено.")
         except Exception as err:
             print(f"Внимание: Не удалось подключиться к Ollama на {self.base_url}: {err}")
 
@@ -65,7 +65,7 @@ class HFChatModel:
             return messages
         return messages[-max_history_turns * 2 :]
 
-    def generate_from_messages(
+    async def generate_from_messages(
         self,
         messages: List[Dict[str, str]],
         system_prompt: Optional[str] = None,
@@ -92,61 +92,65 @@ class HFChatModel:
         }
 
         chat_url = f"{self.base_url}/api/chat"
-        req_data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(
-            chat_url,
-            data=req_data,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
+        generate_url = f"{self.base_url}/api/generate"
 
         try:
-            with urllib.request.urlopen(req, timeout=120) as response:
-                result = json.loads(response.read().decode("utf-8"))
-                generated = result.get("message", {}).get("content", "")
-                bot_message = clean_response_text(generated)
-                return bot_message or "Понял."
-        except urllib.error.HTTPError as http_err:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(chat_url, json=payload, timeout=120) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        generated = result.get("message", {}).get("content", "")
+                        bot_message = clean_response_text(generated)
+                        return bot_message or "Понял."
+                    else:
+                        raise aiohttp.ClientResponseError(
+                            request_info=response.request_info,
+                            history=response.history,
+                            status=response.status,
+                            message=response.reason
+                        )
+        except aiohttp.ClientResponseError as http_err:
             # Fallback to /api/generate
             try:
                 last_user_message = next(
                     (m["content"] for m in reversed(trimmed_messages) if m.get("role") == "user"),
                     ""
                 )
-                generate_url = f"{self.base_url}/api/generate"
                 gen_payload = {
                     "model": resolved_model_id,
                     "prompt": last_user_message,
                     "system": system_prompt or self.system_prompt,
                     "stream": False,
                 }
-                gen_data = json.dumps(gen_payload).encode("utf-8")
-                gen_req = urllib.request.Request(
-                    generate_url,
-                    data=gen_data,
-                    headers={"Content-Type": "application/json"},
-                    method="POST",
-                )
-                with urllib.request.urlopen(gen_req, timeout=120) as gen_response:
-                    gen_result = json.loads(gen_response.read().decode("utf-8"))
-                    generated = gen_result.get("response", "")
-                    bot_message = clean_response_text(generated)
-                    return bot_message or "Понял."
-            except Exception:
-                raise RuntimeError(f"Ошибка API модели ({http_err.code}): {http_err.reason}") from http_err
-        except urllib.error.URLError as url_err:
-            raise RuntimeError(f"Не удалось подключиться к серверу модели {self.base_url}: {url_err.reason}") from url_err
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(generate_url, json=gen_payload, timeout=120) as gen_response:
+                        if gen_response.status == 200:
+                            gen_result = await gen_response.json()
+                            generated = gen_result.get("response", "")
+                            bot_message = clean_response_text(generated)
+                            return bot_message or "Понял."
+                        else:
+                            raise Exception(f"Generate error {gen_response.status}")
+            except Exception as e:
+                raise RuntimeError(f"Ошибка API модели ({http_err.status}): {http_err.message}") from http_err
+        except aiohttp.ClientError as url_err:
+            raise RuntimeError(f"Не удалось подключиться к серверу модели {self.base_url}: {url_err}") from url_err
         except Exception as err:
             raise RuntimeError(f"Ошибка генерации ответа: {err}") from err
 
 
-def chat_loop(chat_model: HFChatModel) -> None:
+async def chat_loop(chat_model: HFChatModel) -> None:
     print("\n--- Чат запущен! (Напишите 'выход' для завершения) ---")
     messages: List[Dict[str, str]] = []
 
+    # get_event_loop().run_in_executor could be used for blocking input, but for simple tests blocking is fine
+    import sys
+    loop = asyncio.get_running_loop()
+
     while True:
         try:
-            user_input = input("\nВы: ")
+            # Using run_in_executor to avoid blocking the event loop on input
+            user_input = await loop.run_in_executor(None, input, "\nВы: ")
             if user_input.lower() in ["выход", "exit", "quit"]:
                 print("До свидания!")
                 break
@@ -155,7 +159,7 @@ def chat_loop(chat_model: HFChatModel) -> None:
                 continue
 
             messages.append({"role": "user", "content": user_input})
-            bot_message = chat_model.generate_from_messages(messages)
+            bot_message = await chat_model.generate_from_messages(messages)
 
             if "\n" in bot_message:
                 print(f"Бот:\n{bot_message}")
@@ -173,7 +177,9 @@ def chat_loop(chat_model: HFChatModel) -> None:
 
 
 if __name__ == "__main__":
-    chat_model = HFChatModel()
-    chat_model.warmup_default()
-    chat_loop(chat_model)
-
+    async def main():
+        chat_model = HFChatModel()
+        await chat_model.warmup_default()
+        await chat_loop(chat_model)
+    
+    asyncio.run(main())

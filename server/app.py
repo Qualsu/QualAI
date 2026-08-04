@@ -1,6 +1,6 @@
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from threading import Lock
 from typing import Dict
 from uuid import uuid4
 
@@ -11,16 +11,16 @@ import uvicorn
 from hf_model import HFChatModel
 from model import *
 from config import *
-from history import load_history_from_disk, save_history_to_disk
+from history import load_history_from_disk, save_session_to_disk, delete_session_from_disk
 
 chat_model = HFChatModel()
-session_lock = Lock()
+session_lock = asyncio.Lock()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    with session_lock:
-        sessions.update(load_history_from_disk())
-    chat_model.warmup_default()
+    async with session_lock:
+        sessions.update(await load_history_from_disk())
+    await chat_model.warmup_default()
     yield
 
 
@@ -35,12 +35,12 @@ app.add_middleware(
 )
 
 @app.get("/health")
-def health() -> Dict[str, str]:
+async def health() -> Dict[str, str]:
     return {"status": "ok"}
 
 
 @app.get("/models", response_model=AvailableModelsResponse)
-def get_available_models() -> AvailableModelsResponse:
+async def get_available_models() -> AvailableModelsResponse:
     return AvailableModelsResponse(
         default_model_id=chat_model.default_model_id,
         models=chat_model.get_available_models(),
@@ -55,7 +55,7 @@ def resolve_session_model_id(history: list[ChatMessage]) -> str:
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest) -> ChatResponse:
+async def chat(request: ChatRequest) -> ChatResponse:
     if not request.message.strip():
         raise HTTPException(status_code=400, detail="Message must not be empty")
 
@@ -71,7 +71,7 @@ def chat(request: ChatRequest) -> ChatResponse:
     session_id = request.session_id or str(uuid4())
     started_at_iso = datetime.now(timezone.utc).isoformat()
 
-    with session_lock:
+    async with session_lock:
         history = list(sessions.get(account_id, {}).get(session_id, []))
         account_started = session_started_at.setdefault(account_id, {})
         account_started.setdefault(session_id, started_at_iso)
@@ -80,7 +80,7 @@ def chat(request: ChatRequest) -> ChatResponse:
 
     try:
         model_history = [message.model_dump() for message in history]
-        reply = chat_model.generate_from_messages(
+        reply = await chat_model.generate_from_messages(
             model_history,
             max_history_turns=request.max_history_turns,
             model_id=model_id,
@@ -93,9 +93,9 @@ def chat(request: ChatRequest) -> ChatResponse:
     history_turns = request.max_history_turns or chat_model.max_history_turns
     history = history[-history_turns * 2 :]
 
-    with session_lock:
+    async with session_lock:
         sessions.setdefault(account_id, {})[session_id] = history
-        save_history_to_disk()
+        await save_session_to_disk(account_id, session_id)
 
     return ChatResponse(
         account_id=account_id,
@@ -107,11 +107,11 @@ def chat(request: ChatRequest) -> ChatResponse:
 
 
 @app.post("/history/session", response_model=SessionHistoryResponse)
-def get_session_history(request: SessionRequest) -> SessionHistoryResponse:
+async def get_session_history(request: SessionRequest) -> SessionHistoryResponse:
     account_id = request.account_id.strip()
     session_id = request.session_id.strip()
 
-    with session_lock:
+    async with session_lock:
         history = sessions.get(account_id, {}).get(session_id)
 
     if history is None:
@@ -128,10 +128,10 @@ def get_session_history(request: SessionRequest) -> SessionHistoryResponse:
 
 
 @app.post("/history/all", response_model=AllHistoryResponse)
-def get_all_history(request: AccountRequest) -> AllHistoryResponse:
+async def get_all_history(request: AccountRequest) -> AllHistoryResponse:
     account_id = request.account_id.strip()
 
-    with session_lock:
+    async with session_lock:
         account_sessions = sessions.get(account_id, {})
         account_started = session_started_at.get(account_id, {})
 
@@ -159,11 +159,11 @@ def get_all_history(request: AccountRequest) -> AllHistoryResponse:
 
 
 @app.post("/chat/clear", response_model=ClearSessionResponse)
-def clear_session(request: SessionRequest) -> ClearSessionResponse:
+async def clear_session(request: SessionRequest) -> ClearSessionResponse:
     account_id = request.account_id.strip()
     session_id = request.session_id.strip()
 
-    with session_lock:
+    async with session_lock:
         account_sessions = sessions.get(account_id)
         if account_sessions is not None:
             account_sessions.pop(session_id, None)
@@ -174,7 +174,7 @@ def clear_session(request: SessionRequest) -> ClearSessionResponse:
             account_started.pop(session_id, None)
             if not account_started:
                 session_started_at.pop(account_id, None)
-        save_history_to_disk()
+        await delete_session_from_disk(account_id, session_id)
     return ClearSessionResponse(status="cleared", account_id=account_id, session_id=session_id)
 
 

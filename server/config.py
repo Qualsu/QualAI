@@ -20,7 +20,7 @@ DEFAULT_MODEL_ID = "qwen2.5:1.5b"
 
 DATA_DIR = os.getenv("DATA_DIR", "/data")
 MODELS_DIR = os.getenv("MODELS_DIR", os.path.join(DATA_DIR, "models"))
-HISTORY_FILE = os.getenv("HISTORY_FILE", os.path.join(DATA_DIR, "chat_history.json"))
+VOICY_DB = os.getenv("VOICY_DB")
 
 sessions: Dict[str, Dict[str, List[ChatMessage]]] = {}
 session_started_at: Dict[str, Dict[str, str]] = {}

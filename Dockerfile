@@ -1,55 +1,19 @@
 # syntax=docker/dockerfile:1.7
+FROM python:3.11-slim
 
-FROM node:20-bookworm-slim AS frontend-builder
-WORKDIR /app
+WORKDIR /app/server
 
-COPY package*.json ./
-RUN npm ci
+# Устанавливаем зависимости
+COPY server/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
-ARG NEXT_PUBLIC_API=/api
-ENV NEXT_PUBLIC_API=${NEXT_PUBLIC_API}
-RUN npm run build
+# Копируем исходники сервера
+COPY server/ ./
 
-FROM node:20-bookworm-slim AS runtime
-WORKDIR /app
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        python3 \
-        python3-pip \
-        nginx \
-        ca-certificates \
-        dumb-init \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY package*.json ./
-RUN npm ci --omit=dev
-
-COPY --from=frontend-builder /app/.next ./.next
-COPY --from=frontend-builder /app/public ./public
-COPY --from=frontend-builder /app/next.config.ts ./next.config.ts
-COPY --from=frontend-builder /app/server ./server
-COPY --from=frontend-builder /app/docker ./docker
-
-RUN pip3 install --no-cache-dir --break-system-packages -r /app/server/requirements.txt
-
-RUN chmod +x /app/docker/start.sh \
-    && rm -f /etc/nginx/sites-enabled/default /etc/nginx/nginx.conf \
-    && cp /app/docker/nginx.conf /etc/nginx/nginx.conf
-
-ENV NODE_ENV=production
-ENV NEXT_PUBLIC_API=/api
-ENV DATA_DIR=/data
-ENV MODELS_DIR=/data/models
-ENV HISTORY_FILE=/data/chat_history.json
-ENV HF_HOME=/data/hf-home
-ENV HUGGINGFACE_HUB_CACHE=/data/models
-ENV TRANSFORMERS_CACHE=/data/models
+# Переменные окружения по умолчанию
 ENV PYTHONUNBUFFERED=1
 
-EXPOSE 80 443
+EXPOSE 8006
 VOLUME ["/data"]
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/app/docker/start.sh"]
+CMD ["python", "app.py"]

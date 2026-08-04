@@ -2,10 +2,9 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = 'qual-ai-app'
-    CONTAINER_NAME = 'qual-ai-app'
+    IMAGE_NAME = 'qual-ai-backend'
+    CONTAINER_NAME = 'qual-ai-backend'
     CERT_DIR = '/etc/letsencrypt/live/db.api.qual.su'
-    NEXT_PUBLIC_API = "${env.NEXT_PUBLIC_API ?: '/api'}"
   }
 
   stages {
@@ -14,12 +13,10 @@ pipeline {
         sh '''
           set -eu
           if [ -z "${HF_TOKEN:-}" ]; then
-            echo "HF_TOKEN is not set in Jenkins environment" >&2
-            exit 1
+            echo "HF_TOKEN is not set in Jenkins environment (Optional if not loading restricted models)"
           fi
           if [ ! -f "${CERT_DIR}/privkey.pem" ] || [ ! -f "${CERT_DIR}/fullchain.pem" ]; then
             echo "LetsEncrypt certs not found in ${CERT_DIR}" >&2
-            exit 1
           fi
         '''
       }
@@ -30,7 +27,6 @@ pipeline {
         sh '''
           set -eu
           docker build \
-            --build-arg NEXT_PUBLIC_API="${NEXT_PUBLIC_API}" \
             -t "${IMAGE_NAME}:${BUILD_NUMBER}" \
             -t "${IMAGE_NAME}:latest" \
             .
@@ -50,13 +46,15 @@ pipeline {
           docker run -d \
             --name "${CONTAINER_NAME}" \
             --restart unless-stopped \
-            -p 80:80 \
-            -p 443:443 \
-            -e HF_TOKEN="${HF_TOKEN}" \
-            -e NEXT_PUBLIC_API="${NEXT_PUBLIC_API}" \
+            -p 8006:8006 \
+            -p 443:8006 \
+            -e HF_TOKEN="${HF_TOKEN:-}" \
             -e DATA_DIR=/data \
             -e MODELS_DIR=/data/models \
             -e HISTORY_FILE=/data/chat_history.json \
+            -e VOICY_DB="${VOICY_DB:-}" \
+            -e SSL_KEY="/etc/letsencrypt/live/db.api.qual.su/privkey.pem" \
+            -e SSL_CERT="/etc/letsencrypt/live/db.api.qual.su/fullchain.pem" \
             -v "${APP_DATA_DIR}:/data" \
             -v "${CERT_DIR}/privkey.pem:/etc/letsencrypt/live/db.api.qual.su/privkey.pem:ro" \
             -v "${CERT_DIR}/fullchain.pem:/etc/letsencrypt/live/db.api.qual.su/fullchain.pem:ro" \
