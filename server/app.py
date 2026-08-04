@@ -26,7 +26,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Qual AI Model API", version="1.0.0", lifespan=lifespan)
-
+ 
 origins = [
     "https://qual-ai.netlify.app",
     "https://ai.qual.su",
