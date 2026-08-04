@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: "/api/proxy/:path*",
+        destination: "http://kenyhost.duckdns.org:8006/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
