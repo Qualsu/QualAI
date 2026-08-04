@@ -38,11 +38,21 @@ node {
       
       VOLUMES="-v \${APP_DATA_DIR}:/data"
       SSL_ENV=""
-      if [ -n "\${SSL_KEY:-}" ] && [ -n "\${SSL_CERT:-}" ] && [ -f "\${SSL_KEY}" ] && [ -f "\${SSL_CERT}" ]; then
-        REAL_KEY=\$(readlink -f "\${SSL_KEY}")
-        REAL_CERT=\$(readlink -f "\${SSL_CERT}")
-        VOLUMES="\$VOLUMES -v \${REAL_KEY}:\${SSL_KEY}:ro -v \${REAL_CERT}:\${SSL_CERT}:ro"
-        SSL_ENV="-e SSL_KEY=\${SSL_KEY} -e SSL_CERT=\${SSL_CERT}"
+      if [ -n "\${SSL_KEY:-}" ] && [ -n "\${SSL_CERT:-}" ]; then
+        echo "DEBUG JENKINS: SSL_KEY=\${SSL_KEY}, SSL_CERT=\${SSL_CERT}"
+        ls -l "\${SSL_KEY}" || echo "DEBUG JENKINS: Cannot access \${SSL_KEY}"
+        ls -l "\${SSL_CERT}" || echo "DEBUG JENKINS: Cannot access \${SSL_CERT}"
+
+        if [ -f "\${SSL_KEY}" ] && [ -f "\${SSL_CERT}" ]; then
+          echo "DEBUG JENKINS: Files exist according to [ -f ] test"
+          REAL_KEY=\$(readlink -f "\${SSL_KEY}")
+          REAL_CERT=\$(readlink -f "\${SSL_CERT}")
+          echo "DEBUG JENKINS: REAL_KEY=\${REAL_KEY}, REAL_CERT=\${REAL_CERT}"
+          VOLUMES="\$VOLUMES -v \${REAL_KEY}:\${SSL_KEY}:ro -v \${REAL_CERT}:\${SSL_CERT}:ro"
+          SSL_ENV="-e SSL_KEY=\${SSL_KEY} -e SSL_CERT=\${SSL_CERT}"
+        else
+          echo "DEBUG JENKINS: [ -f ] test failed. Files do not exist or permission denied!"
+        fi
       fi
 
       docker run -d \

@@ -188,7 +188,17 @@ async def clear_session(request: SessionRequest) -> ClearSessionResponse:
 
 
 if __name__ == "__main__":
+    import os
+    print(f"--- DEBUG PYTHON ---")
+    print(f"ssl_key: '{ssl_key}', ssl_cert: '{ssl_cert}'")
+    if ssl_key:
+        print(f"ssl_key exists? {os.path.exists(ssl_key)}, isfile? {os.path.isfile(ssl_key)}")
+    if ssl_cert:
+        print(f"ssl_cert exists? {os.path.exists(ssl_cert)}, isfile? {os.path.isfile(ssl_cert)}")
+    
     use_ssl = ssl_key and ssl_cert and os.path.isfile(ssl_key) and os.path.isfile(ssl_cert)
+    print(f"use_ssl: {use_ssl}")
+    print(f"--------------------")
     
     uvicorn.run(
         "app:app",
