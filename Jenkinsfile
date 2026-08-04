@@ -39,7 +39,9 @@ node {
       VOLUMES="-v \${APP_DATA_DIR}:/data"
       SSL_ENV=""
       if [ -n "\${SSL_KEY:-}" ] && [ -n "\${SSL_CERT:-}" ] && [ -f "\${SSL_KEY}" ] && [ -f "\${SSL_CERT}" ]; then
-        VOLUMES="\$VOLUMES -v \${SSL_KEY}:\${SSL_KEY}:ro -v \${SSL_CERT}:\${SSL_CERT}:ro"
+        REAL_KEY=\$(readlink -f "\${SSL_KEY}")
+        REAL_CERT=\$(readlink -f "\${SSL_CERT}")
+        VOLUMES="\$VOLUMES -v \${REAL_KEY}:\${SSL_KEY}:ro -v \${REAL_CERT}:\${SSL_CERT}:ro"
         SSL_ENV="-e SSL_KEY=\${SSL_KEY} -e SSL_CERT=\${SSL_CERT}"
       fi
 
