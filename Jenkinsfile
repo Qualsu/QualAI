@@ -3,7 +3,6 @@ node {
   
   def IMAGE_NAME = 'qual-ai-backend'
   def CONTAINER_NAME = 'qual-ai-backend'
-  def CERT_DIR = '/etc/letsencrypt/live/db.api.qual.su'
 
   stage('Validate env') {
     sh """
@@ -11,8 +10,10 @@ node {
       if [ -z "\${HF_TOKEN:-}" ]; then
         echo "HF_TOKEN is not set in Jenkins environment (Optional)"
       fi
-      if [ ! -f "${CERT_DIR}/privkey.pem" ] || [ ! -f "${CERT_DIR}/fullchain.pem" ]; then
-        echo "LetsEncrypt certs not found in ${CERT_DIR}" >&2
+      if [ -n "\${SSL_KEY:-}" ] && [ -n "\${SSL_CERT:-}" ]; then
+        if [ ! -f "\${SSL_KEY}" ] || [ ! -f "\${SSL_CERT}" ]; then
+          echo "Certs not found at \${SSL_KEY} or \${SSL_CERT}" >&2
+        fi
       fi
     """
   }
@@ -36,8 +37,10 @@ node {
       docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
       
       VOLUMES="-v \${APP_DATA_DIR}:/data"
-      if [ -f "${CERT_DIR}/privkey.pem" ] && [ -f "${CERT_DIR}/fullchain.pem" ]; then
-        VOLUMES="\$VOLUMES -v ${CERT_DIR}/privkey.pem:/etc/letsencrypt/live/db.api.qual.su/privkey.pem:ro -v ${CERT_DIR}/fullchain.pem:/etc/letsencrypt/live/db.api.qual.su/fullchain.pem:ro"
+      SSL_ENV=""
+      if [ -n "\${SSL_KEY:-}" ] && [ -n "\${SSL_CERT:-}" ] && [ -f "\${SSL_KEY}" ] && [ -f "\${SSL_CERT}" ]; then
+        VOLUMES="\$VOLUMES -v \${SSL_KEY}:\${SSL_KEY}:ro -v \${SSL_CERT}:\${SSL_CERT}:ro"
+        SSL_ENV="-e SSL_KEY=\${SSL_KEY} -e SSL_CERT=\${SSL_CERT}"
       fi
 
       docker run -d \
@@ -50,8 +53,7 @@ node {
         -e MODELS_DIR=/data/models \
         -e HISTORY_FILE=/data/chat_history.json \
         -e VOICY_DB="\${VOICY_DB:-}" \
-        -e SSL_KEY="/etc/letsencrypt/live/db.api.qual.su/privkey.pem" \
-        -e SSL_CERT="/etc/letsencrypt/live/db.api.qual.su/fullchain.pem" \
+        \$SSL_ENV \
         \$VOLUMES \
         "${IMAGE_NAME}:latest"
     """
