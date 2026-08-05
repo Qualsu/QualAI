@@ -22,18 +22,37 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
   const mainModels = models.filter((m) => m.category !== "old");
   const oldModels = models.filter((m) => m.category === "old");
 
+  const selectedModel = models.find(
+    (m) =>
+      m.id.toLowerCase() === model.toLowerCase() ||
+      m.name.toLowerCase() === model.toLowerCase()
+  );
+  const isSelectedOrangeBadge =
+    Boolean(selectedModel?.badge) &&
+    (selectedModel!.badge!.toLowerCase().includes("fast") ||
+      selectedModel!.badge!.toLowerCase().includes("micro"));
+
   return (
     <Select value={model} onValueChange={setModel}>
       <SelectTrigger
-        className={`surface-panel w-auto min-w-[130px] max-w-[170px] sm:min-w-[180px] sm:max-w-none bg-white/[0.05] hover:bg-white/[0.09] border-white/15 text-white rounded-xl shadow-sm transition-all focus:ring-purple-500/40 text-xs sm:text-sm py-1 sm:py-2 px-2.5 sm:px-3 h-8 sm:h-10 ${
+        className={`surface-panel w-auto min-w-[140px] max-w-[220px] sm:min-w-[190px] sm:max-w-none bg-white/[0.05] hover:bg-white/[0.09] border-white/15 text-white rounded-xl shadow-sm transition-all focus:ring-purple-500/40 text-xs sm:text-sm py-1 sm:py-2 px-2.5 sm:px-3 h-8 sm:h-10 ${
           className ?? ""
         }`}
       >
-        <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+        <div className="flex items-center gap-1.5 sm:gap-2 truncate w-full pr-1">
           <span className="h-2 w-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)] shrink-0" />
-          <SelectValue placeholder="Выберите модель">
-            {getModelLabel(model)}
-          </SelectValue>
+          <span className="truncate">{getModelLabel(model)}</span>
+          {selectedModel?.badge && (
+            <span
+              className={`px-1.5 py-0.5 text-[9px] font-bold border rounded-md uppercase tracking-wider shadow-xs shrink-0 ${
+                isSelectedOrangeBadge
+                  ? "bg-gradient-to-r from-orange-500/20 to-amber-500/20 text-orange-400 border-orange-500/30"
+                  : "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30"
+              }`}
+            >
+              {selectedModel.badge}
+            </span>
+          )}
         </div>
       </SelectTrigger>
       <SelectContent
@@ -44,6 +63,14 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
       >
         <SelectGroup>
           {mainModels.map((m) => {
+            const isOrangeBadge =
+              m.badge &&
+              (m.badge.toLowerCase().includes("fast") ||
+                m.badge.toLowerCase().includes("micro"));
+            const badgeStyle = isOrangeBadge
+              ? "bg-gradient-to-r from-orange-500/20 to-amber-500/20 text-orange-400 border-orange-500/30"
+              : "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30";
+
             return (
               <SelectItem
                 key={m.id}
@@ -53,7 +80,7 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
                 <div className="flex items-center justify-between gap-3 w-full pr-3">
                   <span>{m.name}</span>
                   {m.badge && (
-                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border border-emerald-500/30 rounded-md uppercase tracking-wider shadow-xs shrink-0">
+                    <span className={`px-1.5 py-0.5 text-[10px] font-bold border rounded-md uppercase tracking-wider shadow-xs shrink-0 ${badgeStyle}`}>
                       {m.badge}
                     </span>
                   )}

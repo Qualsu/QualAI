@@ -9,6 +9,7 @@ const MODEL_STORAGE_KEY = "chat-model-id";
 const DEFAULT_MODELS: ModelItem[] = [
   { id: "QualAI-1.5", name: "QualAI-1.5", badge: "Best", category: "main" },
   { id: "QualAI-1.5-mini", name: "QualAI-1.5-mini", badge: "Best", category: "main" },
+  { id: "QualAI-1.5-micro", name: "QualAI-1.5-micro", badge: "Fast", category: "main" },
   { id: "QualAI-Code", name: "QualAI-Code", category: "main" },
   { id: "QualAI-Code-Max", name: "QualAI-Code-Max", category: "main" },
   { id: "QualAI-1", name: "QualAI-1", category: "old" },
@@ -24,6 +25,47 @@ type ModelContextType = {
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
+function getBadge(id: string, name?: string, givenBadge?: string | null): string | null {
+  if (givenBadge && typeof givenBadge === "string" && givenBadge.trim() !== "") {
+    return givenBadge.trim();
+  }
+
+  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
+  const cleanName = (name || "").toLowerCase().replace(/[-_\s]/g, "");
+
+  if (cleanId.includes("micro") || cleanName.includes("micro")) {
+    return "Fast";
+  }
+
+  if (
+    cleanId === "qualai15" ||
+    cleanName === "qualai15" ||
+    cleanId === "qualai15mini" ||
+    cleanName === "qualai15mini"
+  ) {
+    return "Best";
+  }
+
+  const def = DEFAULT_MODELS.find((m) => {
+    const defId = m.id.toLowerCase().replace(/[-_\s]/g, "");
+    const defName = m.name.toLowerCase().replace(/[-_\s]/g, "");
+    return defId === cleanId || defName === cleanName || defId === cleanName || defName === cleanId;
+  });
+
+  return def?.badge || null;
+}
+
+function getCategory(id: string, name?: string, givenCategory?: string | null): string {
+  if (givenCategory && typeof givenCategory === "string" && givenCategory.trim() !== "") {
+    return givenCategory.trim();
+  }
+  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
+  if (cleanId === "qualai1" || cleanId === "qualai1mini") {
+    return "old";
+  }
+  return "main";
+}
+
 function normalizeModels(dataModels: unknown): ModelItem[] {
   if (!dataModels) {
     return DEFAULT_MODELS;
@@ -32,25 +74,44 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
   if (Array.isArray(dataModels)) {
     if (dataModels.length === 0) return DEFAULT_MODELS;
     if (typeof dataModels[0] === "string") {
-      return (dataModels as string[]).map((id) => ({ id, name: id }));
+      return (dataModels as string[]).map((id) => ({
+        id,
+        name: id,
+        badge: getBadge(id, id, null),
+        category: getCategory(id, id, null),
+      }));
     }
-    return (dataModels as ModelItem[]).filter(
-      (m) => m && typeof m === "object" && Boolean(m.id)
-    );
+    return (dataModels as ModelItem[])
+      .filter((m) => m && typeof m === "object" && Boolean(m.id))
+      .map((m) => ({
+        ...m,
+        name: m.name || m.id,
+        badge: getBadge(m.id, m.name, m.badge),
+        category: getCategory(m.id, m.name, m.category),
+      }));
   }
 
   if (typeof dataModels === "object") {
     const items: ModelItem[] = [];
     for (const [key, val] of Object.entries(dataModels)) {
       if (typeof val === "string") {
-        items.push({ id: key, name: val });
+        items.push({
+          id: key,
+          name: val,
+          badge: getBadge(key, val, null),
+          category: getCategory(key, val, null),
+        });
       } else if (val && typeof val === "object") {
         const itemObj = val as Record<string, unknown>;
+        const id = (itemObj.id as string) || key;
+        const name = (itemObj.name as string) || (itemObj.label as string) || id;
+        const givenBadge = (itemObj.badge as string) || null;
+        const givenCategory = (itemObj.category as string) || null;
         items.push({
-          id: (itemObj.id as string) || key,
-          name: (itemObj.name as string) || (itemObj.label as string) || key,
-          badge: (itemObj.badge as string) || null,
-          category: (itemObj.category as string) || "main",
+          id,
+          name,
+          badge: getBadge(id, name, givenBadge),
+          category: getCategory(id, name, givenCategory),
         });
       }
     }
