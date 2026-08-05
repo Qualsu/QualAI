@@ -2,53 +2,72 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { fetchAvailableModels } from "@/app/api/chat";
+import type { ModelItem } from "@/app/api/types";
 
 const MODEL_STORAGE_KEY = "chat-model-id";
 
-export function getModelLabel(modelId: string): string {
-  switch (modelId) {
-    case "qwen3:1.7b":
-      return "QualAI-1.5";
-    case "qwen3:0.6b":
-      return "QualAI-1.5-mini";
-    case "qwen2.5:0.5b":
-      return "QualAI-1-mini";
-    case "qwen2.5:1.5b":
-      return "QualAI-1";
-    case "qwen2.5-coder:1.5b":
-      return "QualAI-Code";
-    case "qwen2.5-coder:3b":
-      return "QualAI-Code-Max";
-    default:
-      if (modelId?.toLowerCase().includes("qwen3")) {
-        return "QualAI-1.5";
-      }
-      if (modelId?.toLowerCase().includes("qwen")) {
-        return "QualAI-1";
-      }
-      return modelId || "QualAI";
-  }
-}
+const DEFAULT_MODELS: ModelItem[] = [
+  { id: "QualAI-1.5", name: "QualAI-1.5", badge: "Best", category: "main" },
+  { id: "QualAI-1.5-mini", name: "QualAI-1.5-mini", badge: "Best", category: "main" },
+  { id: "QualAI-Code", name: "QualAI-Code", category: "main" },
+  { id: "QualAI-Code-Max", name: "QualAI-Code-Max", category: "main" },
+  { id: "QualAI-1", name: "QualAI-1", category: "old" },
+  { id: "QualAI-1-mini", name: "QualAI-1-mini", category: "old" },
+];
 
 type ModelContextType = {
   model: string;
   setModel: (model: string) => void;
-  models: Record<string, string>;
+  models: ModelItem[];
   getModelLabel: (modelId: string) => string;
 };
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
+function normalizeModels(dataModels: unknown): ModelItem[] {
+  if (!dataModels) {
+    return DEFAULT_MODELS;
+  }
+
+  if (Array.isArray(dataModels)) {
+    if (dataModels.length === 0) return DEFAULT_MODELS;
+    if (typeof dataModels[0] === "string") {
+      return (dataModels as string[]).map((id) => ({ id, name: id }));
+    }
+    return (dataModels as ModelItem[]).filter(
+      (m) => m && typeof m === "object" && Boolean(m.id)
+    );
+  }
+
+  if (typeof dataModels === "object") {
+    const items: ModelItem[] = [];
+    for (const [key, val] of Object.entries(dataModels)) {
+      if (typeof val === "string") {
+        items.push({ id: key, name: val });
+      } else if (val && typeof val === "object") {
+        const itemObj = val as Record<string, unknown>;
+        items.push({
+          id: (itemObj.id as string) || key,
+          name: (itemObj.name as string) || (itemObj.label as string) || key,
+          badge: (itemObj.badge as string) || null,
+          category: (itemObj.category as string) || "main",
+        });
+      }
+    }
+    return items.length > 0 ? items : DEFAULT_MODELS;
+  }
+
+  return DEFAULT_MODELS;
+}
+
 export function ModelProvider({ children }: { children: React.ReactNode }) {
-  const [model, setModel] = useState("qwen3:1.7b");
-  const [models, setModels] = useState<Record<string, string>>({
-    "qwen3:1.7b": "QualAI-1.5",
-    "qwen3:0.6b": "QualAI-1.5-mini",
-    "qwen2.5-coder:1.5b": "QualAI-Code",
-    "qwen2.5-coder:3b": "QualAI-Code-Max",
-    "qwen2.5:1.5b": "QualAI-1",
-    "qwen2.5:0.5b": "QualAI-1-mini",
-  });
+  const [model, setModel] = useState<string>("QualAI-1.5");
+  const [models, setModels] = useState<ModelItem[]>(DEFAULT_MODELS);
+
+  const getModelLabel = (modelId: string): string => {
+    const found = models.find((m) => m.id === modelId || m.name === modelId);
+    return found ? found.name : modelId || "QualAI";
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -56,15 +75,11 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
     }
 
     const storedModel = window.localStorage.getItem(MODEL_STORAGE_KEY);
-    if (
-      storedModel &&
-      storedModel !== "qwen2.5:1.5b" &&
-      storedModel !== "qwen2.5:0.5b"
-    ) {
+    if (storedModel && storedModel.startsWith("QualAI")) {
       setModel(storedModel);
     } else {
-      setModel("qwen3:1.7b");
-      window.localStorage.setItem(MODEL_STORAGE_KEY, "qwen3:1.7b");
+      setModel("QualAI-1.5");
+      window.localStorage.setItem(MODEL_STORAGE_KEY, "QualAI-1.5");
     }
   }, []);
 
@@ -78,12 +93,13 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        setModels(data.models);
+        const parsedModels = normalizeModels(data.models);
+        setModels(parsedModels);
         setModel((prev) => {
-          if (prev && data.models[prev]) {
+          if (prev && parsedModels.some((m) => m.id === prev)) {
             return prev;
           }
-          return data.default_model_id;
+          return data.default_model_id || "QualAI-1.5";
         });
       } catch {
         // Keep fallback options.

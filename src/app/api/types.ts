@@ -35,9 +35,16 @@ export type SessionHistoryResponse = {
   history: ChatMessage[];
 };
 
+export type ModelItem = {
+  id: string;
+  name: string;
+  badge?: string | null;
+  category?: string | null;
+};
+
 export type AvailableModelsResponse = {
   default_model_id: string;
-  models: Record<string, string>;
+  models: Record<string, ModelItem> | ModelItem[];
 };
 
 export type AccountRequest = {
