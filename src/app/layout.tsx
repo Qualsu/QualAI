@@ -20,8 +20,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Qual AI — Кодим так, что Интернет плачет",
-  description: "Qual AI — Умный искусственный интеллект от команды Qualsu для общения, генерации кода и решения задач.",
+  title: "Qual AI",
+  description: "Qual AI",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "Qual AI",
   },
   icons: {
-    icon: "/mini-logo.svg",
+    icon: "/icon.png",
     apple: "/icon.png",
   },
 };

@@ -7,7 +7,8 @@ import asyncio
 from config import DEFAULT_MODEL_ID, OLLAMA_BASE_URL, SUPPORTED_MODELS
 
 DEFAULT_SYSTEM_PROMPT = (
-    "Ты русскоязычный ИИ-ассистент Qual AI, созданный компанией Qualsu. "
+    "Ты — ИИ-ассистент линейки QualAI (Qual AI), созданный компанией Qualsu. "
+    "На вопросы 'кто ты', 'какая ты модель' или 'как тебя зовут' всегда отвечай, что ты модель QualAI от компании Qualsu. "
     "Отвечай без лишних списков, без повторов, без самодиалога, без служебных префиксов. "
     "Если вопрос простой, ответь максимально кратко и точно."
 )
@@ -47,6 +48,20 @@ class HFChatModel:
         supported = ", ".join(sorted(self.model_map.keys()))
         raise ValueError(f"Unsupported model_id '{candidate}'. Supported: {supported}")
 
+    def get_system_prompt(self, model_id: Optional[str] = None, custom_prompt: Optional[str] = None) -> str:
+        if custom_prompt:
+            return custom_prompt
+
+        resolved_model_id = self.resolve_model_id(model_id)
+        model_name = self.model_map.get(resolved_model_id, "QualAI")
+
+        return (
+            f"Ты — {model_name}, русскоязычный ИИ-ассистент линейки QualAI (Qual AI), созданный компанией Qualsu. "
+            f"На вопросы 'кто ты', 'какая ты модель' или 'как тебя зовут' отвечай, что ты модель {model_name} (QualAI) от компании Qualsu. "
+            "Отвечай без лишних списков, без повторов, без самодиалога, без служебных префиксов. "
+            "Если вопрос простой, ответь максимально кратко и точно."
+        )
+
     def get_available_models(self) -> Dict[str, str]:
         return dict(self.model_map)
 
@@ -75,9 +90,10 @@ class HFChatModel:
         resolved_model_id = self.resolve_model_id(model_id)
         history_turns = max_history_turns or self.max_history_turns
         trimmed_messages = self._trim_history(messages, history_turns)
+        active_system_prompt = self.get_system_prompt(resolved_model_id, custom_prompt=system_prompt)
 
         formatted_messages = [
-            {"role": "system", "content": system_prompt or self.system_prompt}
+            {"role": "system", "content": active_system_prompt}
         ]
         for msg in trimmed_messages:
             role = msg.get("role", "user")
@@ -119,7 +135,7 @@ class HFChatModel:
                 gen_payload = {
                     "model": resolved_model_id,
                     "prompt": last_user_message,
-                    "system": system_prompt or self.system_prompt,
+                    "system": active_system_prompt,
                     "stream": False,
                 }
                 async with aiohttp.ClientSession() as session:

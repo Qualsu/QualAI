@@ -67,6 +67,27 @@ export default function Chat() {
     }
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const firstUserMsg = messages.find((m) => m.role === "user")?.content?.trim();
+    const chatTitle = firstUserMsg
+      ? firstUserMsg.length > 50
+        ? `${firstUserMsg.slice(0, 50)}...`
+        : firstUserMsg
+      : sessionId
+      ? `Чат ${sessionId.slice(0, 8)}`
+      : "Чат";
+
+    document.title = `QualAI | ${chatTitle}`;
+
+    return () => {
+      document.title = "Qual AI";
+    };
+  }, [messages, sessionId]);
+
   const accountId = user?.id ?? "guest";
 
   useEffect(() => {

@@ -11,12 +11,14 @@ if TYPE_CHECKING:
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://192.168.0.150:11434")
 
 SUPPORTED_MODELS: Dict[str, str] = {
-	"qwen2.5:0.5b": "QualAI-1-mini",
-	"qwen2.5:1.5b": "QualAI-1",
+	"qwen3:1.7b": "QualAI-2",
+	"qwen3:0.6b": "QualAI-2-mini",
 	"qwen2.5-coder:1.5b": "QualAI-Code",
 	"qwen2.5-coder:3b": "QualAI-Code-Max",
+	"qwen2.5:1.5b": "QualAI-1",
+	"qwen2.5:0.5b": "QualAI-1-mini",
 }
-DEFAULT_MODEL_ID = "qwen2.5:1.5b"
+DEFAULT_MODEL_ID = "qwen3:1.7b"
 
 DATA_DIR = os.getenv("DATA_DIR", "/data")
 MODELS_DIR = os.getenv("MODELS_DIR", os.path.join(DATA_DIR, "models"))
