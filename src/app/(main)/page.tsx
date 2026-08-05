@@ -146,7 +146,7 @@ export default function Home() {
     ]);
 
     try {
-      const response = await sendChatMessageStream(
+      await sendChatMessageStream(
         {
           account_id: accountId,
           message: promptToSend,
@@ -154,6 +154,10 @@ export default function Home() {
         },
         (initData) => {
           setModel(initData.model_id);
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
+          }
+          router.push(`/${initData.session_id}`);
         },
         (chunk) => {
           setMessages((prev) => {
@@ -171,13 +175,6 @@ export default function Home() {
           });
         }
       );
-
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
-      }
-
-      setModel(response.model_id);
-      router.push(`/${response.session_id}`);
     } catch {
       setMessages((prev) => prev.slice(0, -1));
       setError("Не удалось отправить сообщение. Проверь API и попробуй снова.");
