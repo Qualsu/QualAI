@@ -97,6 +97,54 @@ export default function Chat() {
     }
 
     let isMounted = true;
+    let pollInterval: number | null = null;
+    let pollCount = 0;
+
+    const checkPendingAssistantReply = (history: ChatMessage[], modelId?: string) => {
+      const lastMsg = history[history.length - 1];
+      if (lastMsg && lastMsg.role === "user") {
+        setMessages([
+          ...history,
+          { role: "assistant", content: TYPING_PLACEHOLDER, model_id: modelId || model },
+        ]);
+        setIsSending(true);
+
+        pollInterval = window.setInterval(async () => {
+          pollCount += 1;
+          if (pollCount > 40) {
+            if (pollInterval) clearInterval(pollInterval);
+            if (isMounted) {
+              setIsSending(false);
+              setMessages((prev) =>
+                prev.filter((m) => m.content !== TYPING_PLACEHOLDER)
+              );
+              setError("Превышено время ожидания ответа от модели.");
+            }
+            return;
+          }
+
+          try {
+            const data = await fetchSessionHistory({
+              account_id: accountId,
+              session_id: sessionId,
+            });
+            if (!isMounted) return;
+
+            const newLastMsg = data.history[data.history.length - 1];
+            if (newLastMsg && newLastMsg.role === "assistant") {
+              if (pollInterval) clearInterval(pollInterval);
+              setMessages(data.history);
+              setIsSending(false);
+              if (data.model_id) setModel(data.model_id);
+            }
+          } catch {
+            // Ignore polling errors while generating
+          }
+        }, 1500);
+      } else {
+        setMessages(history);
+      }
+    };
 
     const loadSession = async () => {
       setIsLoading(true);
@@ -108,8 +156,8 @@ export default function Chat() {
         });
 
         if (isMounted) {
-          setMessages(data.history);
           setError(null);
+          checkPendingAssistantReply(data.history, data.model_id);
         }
       } catch (error: unknown) {
         if (isMounted) {
@@ -138,48 +186,11 @@ export default function Chat() {
 
     return () => {
       isMounted = false;
+      if (pollInterval) {
+        window.clearInterval(pollInterval);
+      }
     };
-  }, [accountId, sessionId]);
-
-  const animateAssistantMessage = async (text: string, modelId?: string) => {
-    const targetText = text.trim();
-    if (!targetText) {
-      setMessages((prev) => {
-        if (prev.length === 0) {
-          return prev;
-        }
-
-        const next = [...prev];
-        next[next.length - 1] = { role: "assistant", content: "", model_id: modelId };
-        return next;
-      });
-      return;
-    }
-
-    await new Promise<void>((resolve) => {
-      let position = 0;
-      const step = Math.max(1, Math.ceil(targetText.length / 80));
-      const intervalId = window.setInterval(() => {
-        position = Math.min(position + step, targetText.length);
-        const chunk = targetText.slice(0, position);
-
-        setMessages((prev) => {
-          if (prev.length === 0) {
-            return prev;
-          }
-
-          const next = [...prev];
-          next[next.length - 1] = { role: "assistant", content: chunk, model_id: modelId };
-          return next;
-        });
-
-        if (position >= targetText.length) {
-          window.clearInterval(intervalId);
-          resolve();
-        }
-      }, 22);
-    });
-  };
+  }, [accountId, sessionId, model, setModel]);
 
   const handleSend = async () => {
     const trimmedMessage = message.trim();
