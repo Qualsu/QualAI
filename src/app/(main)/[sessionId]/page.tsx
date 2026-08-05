@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchSessionHistory, sendChatMessage } from "@/app/api/chat";
+import { fetchSessionHistory, sendChatMessageStream } from "@/app/api/chat";
 import type { ChatMessage } from "@/app/api/types";
 import ChatPageSkeleton from "@/components/chat-page-skeleton";
 import ModelSelector from "@/components/model-selector";
@@ -198,15 +198,32 @@ export default function Chat() {
     ]);
 
     try {
-      const response = await sendChatMessage({
-        account_id: accountId,
-        message: trimmedMessage,
-        model_id: model,
-        session_id: sessionId,
-      });
-
-      const assistantReply = resolveAssistantReply(response.response, response.history);
-      await animateAssistantMessage(assistantReply, response.model_id);
+      const response = await sendChatMessageStream(
+        {
+          account_id: accountId,
+          message: trimmedMessage,
+          model_id: model,
+          session_id: sessionId,
+        },
+        (initData) => {
+          setModel(initData.model_id);
+        },
+        (chunk) => {
+          setMessages((prev) => {
+            if (prev.length === 0) return prev;
+            const next = [...prev];
+            const lastMsg = next[next.length - 1];
+            if (lastMsg.role === "assistant") {
+              const currentContent = lastMsg.content === TYPING_PLACEHOLDER ? "" : lastMsg.content;
+              next[next.length - 1] = {
+                ...lastMsg,
+                content: currentContent + chunk,
+              };
+            }
+            return next;
+          });
+        }
+      );
 
       setModel(response.model_id);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { sendChatMessage } from "@/app/api/chat";
+import { sendChatMessageStream } from "@/app/api/chat";
 import type { ChatMessage } from "@/app/api/types";
 import ModelSelector from "@/components/model-selector";
 import { Button } from "@/components/ui/button";
@@ -146,14 +146,31 @@ export default function Home() {
     ]);
 
     try {
-      const response = await sendChatMessage({
-        account_id: accountId,
-        message: promptToSend,
-        model_id: model,
-      });
-
-      const assistantReply = resolveAssistantReply(response.response, response.history);
-      await animateAssistantMessage(assistantReply, response.model_id);
+      const response = await sendChatMessageStream(
+        {
+          account_id: accountId,
+          message: promptToSend,
+          model_id: model,
+        },
+        (initData) => {
+          setModel(initData.model_id);
+        },
+        (chunk) => {
+          setMessages((prev) => {
+            if (prev.length === 0) return prev;
+            const next = [...prev];
+            const lastMsg = next[next.length - 1];
+            if (lastMsg.role === "assistant") {
+              const currentContent = lastMsg.content === TYPING_PLACEHOLDER ? "" : lastMsg.content;
+              next[next.length - 1] = {
+                ...lastMsg,
+                content: currentContent + chunk,
+              };
+            }
+            return next;
+          });
+        }
+      );
 
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
