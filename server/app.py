@@ -34,6 +34,7 @@ origins = [
 
 if os.getenv("APP_ENV") == "development":
     origins.append("http://localhost:3000")
+    origins.append("http://localhost:3001")
 
 app.add_middleware(
     CORSMiddleware,

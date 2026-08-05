@@ -15,7 +15,7 @@ import { useUser } from "@clerk/nextjs";
 import { Send } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const MODEL_STORAGE_KEY = "chat-model-id";
@@ -105,6 +105,18 @@ export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  };
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom("smooth");
+    }
+  }, [messages]);
 
   const accountId = user?.id ?? "guest";
 
@@ -334,6 +346,7 @@ export default function Home() {
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
