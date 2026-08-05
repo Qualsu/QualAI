@@ -1,43 +1,19 @@
 'use client';
 
-import { fetchAvailableModels, fetchSessionHistory, sendChatMessage } from "@/app/api/chat";
+import { fetchSessionHistory, sendChatMessage } from "@/app/api/chat";
 import type { ChatMessage } from "@/app/api/types";
 import ChatPageSkeleton from "@/components/chat-page-skeleton";
+import ModelSelector from "@/components/model-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useModel } from "@/lib/model-context";
 import { useUser } from "@clerk/nextjs";
 import { Send } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
-const MODEL_STORAGE_KEY = "chat-model-id";
 const TYPING_PLACEHOLDER = "__typing__";
-
-function getModelLabel(modelId: string): string {
-  switch (modelId) {
-    case "qwen2.5:0.5b":
-      return "QualAI-1-mini";
-    case "qwen2.5:1.5b":
-      return "QualAI-1";
-    case "qwen2.5-coder:1.5b":
-      return "QualAI-Code";
-    case "qwen2.5-coder:3b":
-      return "QualAI-Code-Max";
-    default:
-      if (modelId?.toLowerCase().includes("qwen")) {
-        return "QualAI-1";
-      }
-      return modelId || "QualAI";
-  }
-}
 
 function TypingDots() {
   return (
@@ -72,14 +48,8 @@ export default function Chat() {
   const params = useParams<{ sessionId: string }>();
   const sessionId = params?.sessionId;
 
+  const { model, setModel, getModelLabel } = useModel();
   const [message, setMessage] = useState("");
-  const [model, setModel] = useState("qwen2.5:1.5b");
-  const [models, setModels] = useState<Record<string, string>>({
-    "qwen2.5:0.5b": "QualAI-1-mini",
-    "qwen2.5:1.5b": "QualAI-1",
-    "qwen2.5-coder:1.5b": "QualAI-Code",
-    "qwen2.5-coder:3b": "QualAI-Code-Max",
-  });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
@@ -98,52 +68,6 @@ export default function Chat() {
   }, [messages, isLoading]);
 
   const accountId = user?.id ?? "guest";
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const storedModel = window.localStorage.getItem(MODEL_STORAGE_KEY);
-    if (storedModel) {
-      setModel(storedModel);
-    }
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadModels = async () => {
-      try {
-        const data = await fetchAvailableModels();
-        if (!isMounted) {
-          return;
-        }
-
-        setModels(data.models);
-        setModel((prev) => {
-          if (prev && data.models[prev]) {
-            return prev;
-          }
-          return data.default_model_id;
-        });
-      } catch {
-        // Keep fallback options.
-      }
-    };
-
-    void loadModels();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && model) {
-      window.localStorage.setItem(MODEL_STORAGE_KEY, model);
-    }
-  }, [model]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -282,26 +206,10 @@ export default function Chat() {
 
   return (
     <div className="flex h-full min-h-0 flex-col text-white relative isolate">
-      {/* Top bar with Model Selector */}
-      <header className="shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 flex items-center justify-between backdrop-blur-xl bg-[#161118]/80 z-20">
+      {/* Top bar with Model Selector (hidden on mobile, shown in navbar on mobile) */}
+      <header className="hidden md:flex shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 items-center justify-between backdrop-blur-xl bg-[#161118]/80 z-20">
         <div className="flex items-center gap-3">
-          <Select value={model} onValueChange={setModel}>
-            <SelectTrigger className="surface-panel w-auto min-w-[180px] bg-white/[0.05] hover:bg-white/[0.09] border-white/15 text-white rounded-xl shadow-sm transition-all focus:ring-purple-500/40">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-                <SelectValue placeholder="Выберите модель" />
-              </div>
-            </SelectTrigger>
-            <SelectContent className="surface-panel bg-[#1e131d]/95 backdrop-blur-2xl border-white/15 text-white rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5">
-              {Object.keys(models).map((modelId) => (
-                <SelectItem key={modelId} value={modelId} className="rounded-xl hover:bg-white/10 focus:bg-white/10 cursor-pointer">
-                  <div className="flex items-center gap-2">
-                    <span>{getModelLabel(modelId)}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ModelSelector />
         </div>
       </header>
 

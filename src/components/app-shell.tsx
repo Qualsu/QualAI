@@ -6,6 +6,8 @@ import { Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import ModelSelector from "@/components/model-selector";
+
 type AppShellProps = {
   children: React.ReactNode;
 };
@@ -36,19 +38,23 @@ export default function AppShell({ children }: AppShellProps) {
         }`}
       >
         {/* Mobile top bar */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-[#161118]/95 backdrop-blur-2xl px-4 py-3 border-b border-white/10 shadow-lg">
-          <div className="flex items-center gap-3">
+        <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-[#161118]/95 backdrop-blur-2xl px-3 sm:px-4 py-2 border-b border-white/10 shadow-lg">
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => setIsMobileOpen(true)}
-              className="text-white/80 hover:text-white p-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.1] transition-all"
+              className="text-white/80 hover:text-white p-1.5 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.1] transition-all shrink-0"
               aria-label="Открыть меню"
             >
               <Menu size={20} />
             </button>
-            <Link href="/" className="flex items-center">
-              <Image src="/logo.png" width={110} height={26} alt="Qual AI" className="object-contain" />
+            <Link href="/" className="flex items-center shrink-0">
+              <Image src="/logo.png" width={95} height={22} alt="Qual AI" className="object-contain" />
             </Link>
+          </div>
+
+          <div className="flex items-center">
+            <ModelSelector />
           </div>
         </div>
 
