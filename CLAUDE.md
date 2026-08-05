@@ -55,8 +55,8 @@ Qual AI is a full-stack application featuring a frontend built with Next.js and 
 5. **No Blind Overwrites:** Use `replace_file_content` or `multi_replace_file_content` for editing code. Only use `write_to_file` with Overwrite if replacing the entire contents purposefully.
 6. **No `npm run build` during dev testing:** NEVER run `npm run build` or `next build` to verify frontend changes while the user's dev server is active. Running `next build` wipes `.next/` cache and breaks the running `next dev` server and browser Service Worker (`ENOENT _buildManifest.js` error). Use `npx tsc --noEmit` for type checking instead.
 7. **Model Conventions:**
-   - `qwen3:1.7b` ➔ `QualAI-2` (Default model, tagged `Best`)
-   - `qwen3:0.6b` ➔ `QualAI-2-mini` (Tagged `Best`)
+   - `qwen3:1.7b` ➔ `QualAI-1.5` (Default model, tagged `Best`)
+   - `qwen3:0.6b` ➔ `QualAI-1.5-mini` (Tagged `Best`)
    - `qwen2.5-coder:1.5b` ➔ `QualAI-Code`
    - `qwen2.5-coder:3b` ➔ `QualAI-Code-Max`
    - `qwen2.5:1.5b` ➔ `QualAI-1` (Categorized under `Old`)

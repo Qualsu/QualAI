@@ -8,9 +8,9 @@ const MODEL_STORAGE_KEY = "chat-model-id";
 export function getModelLabel(modelId: string): string {
   switch (modelId) {
     case "qwen3:1.7b":
-      return "QualAI-2";
+      return "QualAI-1.5";
     case "qwen3:0.6b":
-      return "QualAI-2-mini";
+      return "QualAI-1.5-mini";
     case "qwen2.5:0.5b":
       return "QualAI-1-mini";
     case "qwen2.5:1.5b":
@@ -21,7 +21,7 @@ export function getModelLabel(modelId: string): string {
       return "QualAI-Code-Max";
     default:
       if (modelId?.toLowerCase().includes("qwen3")) {
-        return "QualAI-2";
+        return "QualAI-1.5";
       }
       if (modelId?.toLowerCase().includes("qwen")) {
         return "QualAI-1";
@@ -42,8 +42,8 @@ const ModelContext = createContext<ModelContextType | undefined>(undefined);
 export function ModelProvider({ children }: { children: React.ReactNode }) {
   const [model, setModel] = useState("qwen3:1.7b");
   const [models, setModels] = useState<Record<string, string>>({
-    "qwen3:1.7b": "QualAI-2",
-    "qwen3:0.6b": "QualAI-2-mini",
+    "qwen3:1.7b": "QualAI-1.5",
+    "qwen3:0.6b": "QualAI-1.5-mini",
     "qwen2.5-coder:1.5b": "QualAI-Code",
     "qwen2.5-coder:3b": "QualAI-Code-Max",
     "qwen2.5:1.5b": "QualAI-1",

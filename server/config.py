@@ -11,8 +11,8 @@ if TYPE_CHECKING:
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://192.168.0.150:11434")
 
 SUPPORTED_MODELS: Dict[str, str] = {
-	"qwen3:1.7b": "QualAI-2",
-	"qwen3:0.6b": "QualAI-2-mini",
+	"qwen3:1.7b": "QualAI-1.5",
+	"qwen3:0.6b": "QualAI-1.5-mini",
 	"qwen2.5-coder:1.5b": "QualAI-Code",
 	"qwen2.5-coder:3b": "QualAI-Code-Max",
 	"qwen2.5:1.5b": "QualAI-1",

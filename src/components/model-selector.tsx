@@ -34,8 +34,8 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
     return (
       key === "qwen3:1.7b" ||
       key === "qwen3:0.6b" ||
-      label === "QualAI-2" ||
-      label === "QualAI-2-mini"
+      label === "QualAI-1.5" ||
+      label === "QualAI-1.5-mini"
     );
   };
 
