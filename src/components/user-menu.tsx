@@ -2,6 +2,7 @@
 
 import { useClerk, useUser, UserAvatar } from "@clerk/nextjs";
 import { LogOut, Settings } from "lucide-react";
+import type { UserMenuProps } from "@/config/types";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,9 +10,6 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-type UserMenuProps = {
-    isCollapsed?: boolean;
-};
         
 export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
     const { user } = useUser();

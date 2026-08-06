@@ -1,7 +1,7 @@
 "use client"
 
 import { clearChatSession, fetchAllHistory } from "@/app/api/chat";
-import type { ChatMessage } from "@/app/api/types";
+import type { ChatMessage } from "@/config/types";
 import { useUser } from "@clerk/nextjs";
 import { ChevronFirstIcon, ChevronLastIcon, Plus, Trash2, X } from "lucide-react";
 import Image from "next/image";
@@ -21,22 +21,11 @@ import {
 } from "./ui/alert-dialog";
 import { Skeleton } from "./ui/skeleton";
 import { APP_NAME, images, pages } from "@/config";
+import type { NavbarProps, SessionItem } from "@/config/types";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const NEW_CHAT_EVENT = "new-chat";
 
-type NavbarProps = {
-    isCollapsed: boolean;
-    onToggle: () => void;
-    isMobileOpen: boolean;
-    onMobileClose: () => void;
-};
-
-type SessionItem = {
-    sessionId: string;
-    preview: string;
-    startedAt: string;
-};
 
 function buildSessionPreview(
     sessionId: string,
@@ -233,11 +222,17 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                     <div className="text-xs uppercase tracking-wider text-white/40 px-2 py-1.5 font-medium">История чатов</div>
 
                     <ul className="flex-1 overflow-y-auto overflow-x-hidden space-y-1 pr-1">
-                        {sessions.length === 0 && (
+                        {isLoading && sessions.length === 0 ? (
+                            <li className="space-y-2 p-1">
+                                <Skeleton className="h-9 w-full rounded-xl bg-white/5" />
+                                <Skeleton className="h-9 w-4/5 rounded-xl bg-white/5" />
+                                <Skeleton className="h-9 w-full rounded-xl bg-white/5" />
+                            </li>
+                        ) : sessions.length === 0 ? (
                             <li className="p-3 text-sm text-white/40 text-center rounded-xl bg-white/[0.02] border border-white/5 my-2">
                                 Чатов пока нет
                             </li>
-                        )}
+                        ) : null}
 
                         {sessions.map((session) => {
                             const isActive = session.sessionId === activeSessionId;

@@ -1,14 +1,14 @@
 'use client';
 
 import { fetchSessionHistory, sendChatMessageStream } from "@/app/api/chat";
-import type { ChatMessage } from "@/app/api/types";
+import type { ChatMessage } from "@/config/types";
 import ChatPageSkeleton from "@/components/chat-page-skeleton";
 import ModelSelector from "@/components/model-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useModel } from "@/lib/model-context";
 import { useUser } from "@clerk/nextjs";
-import { Send } from "lucide-react";
+import { AlertCircle, Send } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -221,9 +221,10 @@ export default function Chat() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
       }
-    } catch {
+    } catch (err: unknown) {
       setMessages((prev) => prev.slice(0, -1));
-      setError("Не удалось отправить сообщение. Проверь API и попробуй снова.");
+      const errorMessage = err instanceof Error ? err.message : "Не удалось отправить сообщение. Проверь API и попробуй снова.";
+      setError(errorMessage);
     } finally {
       setIsSending(false);
     }
@@ -326,7 +327,12 @@ export default function Chat() {
             </Button>
           </div>
 
-          {error && <p className="mt-3 text-xs sm:text-sm text-red-400 text-center">{error}</p>}
+          {error && (
+            <div className="mt-3 flex items-center justify-center gap-2 text-xs sm:text-sm text-red-300 bg-red-500/15 border border-red-500/30 px-3.5 py-2 rounded-xl backdrop-blur-md">
+              <AlertCircle size={15} className="shrink-0 text-red-400" />
+              <span>{error}</span>
+            </div>
+          )}
           <div className="mt-2.5 text-[11px] text-white/35 text-center">
             Qual AI • Кодим так, что Интернет плачет
           </div>

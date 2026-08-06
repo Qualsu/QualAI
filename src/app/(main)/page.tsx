@@ -1,13 +1,13 @@
 'use client';
 
 import { sendChatMessageStream } from "@/app/api/chat";
-import type { ChatMessage } from "@/app/api/types";
+import type { ChatMessage } from "@/config/types";
 import ModelSelector from "@/components/model-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useModel } from "@/lib/model-context";
 import { useUser } from "@clerk/nextjs";
-import { ArrowRight, Send } from "lucide-react";
+import { AlertCircle, ArrowRight, Send } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { APP_NAME, images, pages } from "@/config";
@@ -170,9 +170,10 @@ export default function Home() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
       }
-    } catch {
+    } catch (err: unknown) {
       setMessages((prev) => prev.slice(0, -1));
-      setError("Не удалось отправить сообщение. Проверь API и попробуй снова.");
+      const errorMessage = err instanceof Error ? err.message : "Не удалось отправить сообщение. Проверь API и попробуй снова.";
+      setError(errorMessage);
     } finally {
       setIsSending(false);
     }
@@ -217,7 +218,7 @@ export default function Home() {
               Кодим так, что Интернет плачет
             </h1>
             <p className="text-sm sm:text-base text-white/70 text-center max-w-lg mb-8 sm:mb-12">
-              Qual AI — Умный искусственный интеллект от команды Qualsu для разработки, генерации кода и решения любых задач.
+              Qual AI — Искусственный интеллект от команды Qualsu для разработки, генерации кода и решения любых задач (Модели хуже GPT-3)
             </p>
 
             {/* Quick prompt cards in Qualsu ProjectCard style */}
@@ -302,7 +303,12 @@ export default function Home() {
             </Button>
           </div>
 
-          {error && <p className="mt-3 text-xs sm:text-sm text-red-400 text-center">{error}</p>}
+          {error && (
+            <div className="mt-3 flex items-center justify-center gap-2 text-xs sm:text-sm text-red-300 bg-red-500/15 border border-red-500/30 px-3.5 py-2 rounded-xl backdrop-blur-md">
+              <AlertCircle size={15} className="shrink-0 text-red-400" />
+              <span>{error}</span>
+            </div>
+          )}
           <div className="mt-2.5 text-[11px] text-white/35 text-center">
             {APP_NAME} • Кодим так, что Интернет плачет
           </div>

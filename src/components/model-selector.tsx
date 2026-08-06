@@ -1,6 +1,7 @@
 "use client";
 
 import { useModel } from "@/lib/model-context";
+import type { ModelSelectorProps } from "@/config/types";
 import {
   Select,
   SelectContent,
@@ -9,12 +10,8 @@ import {
   SelectLabel,
   SelectSeparator,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 
-type ModelSelectorProps = {
-  className?: string;
-};
 
 export default function ModelSelector({ className }: ModelSelectorProps) {
   const { model, setModel, models, getModelLabel } = useModel();

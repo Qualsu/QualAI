@@ -34,4 +34,4 @@ Qual AI is a full-stack AI chat application. The frontend is built with Next.js 
    - The frontend ONLY displays and handles QualAI model names (`QualAI-1.5`, `QualAI-1.5-mini`, `QualAI-Code`, `QualAI-Code-Max`, `QualAI-1`, `QualAI-1-mini`).
    - The list of available models and metadata (badges, categories) is fetched dynamically from the backend endpoint `/models`.
    - No underlying provider names or internal model IDs are stored or referenced in the frontend codebase.
-
+5. **Types and Interfaces:** All global API types, context types, and React Component Props MUST ALWAYS be placed centrally in the `src/config/types` directory, split by domain (e.g. `api.types.ts`, `models.types.ts`, `components.types.ts`). Do not define types or interfaces inline within components, utilities, or API files. Always import them from `@/config/types`.

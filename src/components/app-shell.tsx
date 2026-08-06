@@ -8,10 +8,8 @@ import Link from "next/link";
 import { APP_NAME, images, pages } from "@/config";
 
 import ModelSelector from "@/components/model-selector";
+import type { AppShellProps } from "@/config/types";
 
-type AppShellProps = {
-  children: React.ReactNode;
-};
 
 export default function AppShell({ children }: AppShellProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);

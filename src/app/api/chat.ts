@@ -8,13 +8,32 @@ import type {
   ClearSessionResponse,
   SessionHistoryResponse,
   SessionRequest,
-} from "@/app/api/types";
+} from "@/config/types";
 
 export async function sendChatMessage(payload: ChatRequest): Promise<ChatResponse> {
-  const { data } = await apiClient.post<ChatResponse>("/chat", payload, {
-    timeout: 180000,
-  });
-  return data;
+  try {
+    const { data } = await apiClient.post<ChatResponse>("/chat", payload, {
+      timeout: 180000,
+    });
+    return data;
+  } catch (error: unknown) {
+    if (typeof error === "object" && error !== null && "response" in error) {
+      const resp = (error as { response?: { status?: number; data?: { detail?: string } } }).response;
+      if (resp?.data?.detail) {
+        throw new Error(resp.data.detail);
+      }
+      if (resp?.status === 503) {
+        throw new Error("Сервер перегружен (503). В очереди уже максимальное количество запросов. Попробуйте позже.");
+      }
+      if (resp?.status === 429) {
+        throw new Error("Слишком много запросов (429). Лимит: 10 запросов в минуту. Пожалуйста, подождите.");
+      }
+      if (resp?.status === 504) {
+        throw new Error("Превышено время ожидания ответа от модели (120 сек).");
+      }
+    }
+    throw error;
+  }
 }
 
 export async function sendChatMessageStream(
@@ -36,7 +55,36 @@ export async function sendChatMessageStream(
   });
 
   if (!response.ok || !response.body) {
-    throw new Error(`Stream request failed with status ${response.status}`);
+    let errorDetail = "";
+    try {
+      const errorJson = await response.json();
+      if (typeof errorJson?.detail === "string") {
+        errorDetail = errorJson.detail;
+      } else if (Array.isArray(errorJson?.detail)) {
+        errorDetail = errorJson.detail.map((e: { msg?: string }) => e.msg || JSON.stringify(e)).join(", ");
+      }
+    } catch {
+      try {
+        errorDetail = await response.text();
+      } catch {
+        // ignore
+      }
+    }
+
+    if (errorDetail) {
+      throw new Error(errorDetail);
+    }
+
+    if (response.status === 503) {
+      throw new Error("Сервер перегружен (503). В очереди уже максимальное количество запросов. Попробуйте чуть позже.");
+    }
+    if (response.status === 429) {
+      throw new Error("Слишком много запросов (429). Лимит: 10 запросов в минуту. Пожалуйста, подождите.");
+    }
+    if (response.status === 504) {
+      throw new Error("Превышено время ожидания генерации ответа (120 сек).");
+    }
+    throw new Error(`Ошибка запроса к серверу (${response.status})`);
   }
 
   const reader = response.body.getReader();
@@ -69,10 +117,10 @@ export async function sendChatMessageStream(
         } else if (data.type === "done") {
           sessionInfo = { session_id: data.session_id, model_id: data.model_id };
         } else if (data.type === "error") {
-          throw new Error(data.detail || "Stream error");
+          throw new Error(data.detail || "Произошла ошибка при генерации ответа");
         }
       } catch (err) {
-        if (err instanceof Error && err.message === "Stream error") {
+        if (err instanceof Error) {
           throw err;
         }
       }

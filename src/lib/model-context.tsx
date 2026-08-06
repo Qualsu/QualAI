@@ -2,27 +2,10 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { fetchAvailableModels } from "@/app/api/chat";
-import type { ModelItem } from "@/app/api/types";
+import type { ModelItem } from "@/config/types";
+import { DEFAULT_MODELS, MODEL_STORAGE_KEY } from "@/config/const/model-context.const";
+import type { ModelContextType } from "@/config/types";
 
-const MODEL_STORAGE_KEY = "chat-model-id";
-
-const DEFAULT_MODELS: ModelItem[] = [
-  { id: "QualAI-1.5", name: "QualAI-1.5", badge: "Best", category: "main" },
-  { id: "QualAI-1.5-mini", name: "QualAI-1.5-mini", category: "main" },
-  { id: "QualAI-1.6-nano", name: "QualAI-1.6-nano", category: "main", badge: "Fast" },
-  { id: "QualAI-1.5-micro", name: "QualAI-1.5-micro (nano)", badge: "Fast", category: "old" },
-  { id: "QualAI-Code", name: "QualAI-Code", category: "main" },
-  { id: "QualAI-Code-Max", name: "QualAI-Code-Max", category: "main" },
-  { id: "QualAI-1", name: "QualAI-1", category: "old" },
-  { id: "QualAI-1-mini", name: "QualAI-1-mini", category: "old" },
-];
-
-type ModelContextType = {
-  model: string;
-  setModel: (model: string) => void;
-  models: ModelItem[];
-  getModelLabel: (modelId: string) => string;
-};
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
@@ -172,7 +155,7 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
     };
   }, []);
-
+  
   const handleSetModel = (newModel: string) => {
     setModel(newModel);
     if (typeof window !== "undefined") {
