@@ -63,26 +63,7 @@ export default function Chat() {
     }
   }, [messages, isLoading]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
 
-    const firstUserMsg = messages.find((m) => m.role === "user")?.content?.trim();
-    const chatTitle = firstUserMsg
-      ? firstUserMsg.length > 50
-        ? `${firstUserMsg.slice(0, 50)}...`
-        : firstUserMsg
-      : sessionId
-      ? `Чат ${sessionId.slice(0, 8)}`
-      : "Чат";
-
-    document.title = `QualAI | ${chatTitle}`;
-
-    return () => {
-      document.title = "Qual AI";
-    };
-  }, [messages, sessionId]);
 
   const accountId = user?.id ?? "guest";
 
@@ -248,12 +229,28 @@ export default function Chat() {
     }
   };
 
+  const firstUserMsg = messages.find((m) => m.role === "user")?.content?.trim();
+  const chatTitle = firstUserMsg
+    ? firstUserMsg.length > 50
+      ? `${firstUserMsg.slice(0, 50)}...`
+      : firstUserMsg
+    : sessionId
+    ? `Чат ${typeof sessionId === 'string' ? sessionId.slice(0, 8) : sessionId}`
+    : "Чат";
+  const pageTitle = `QualAI | ${chatTitle}`;
+
   if (isLoading) {
-    return <ChatPageSkeleton />;
+    return (
+      <>
+        <title>QualAI | Загрузка...</title>
+        <ChatPageSkeleton />
+      </>
+    );
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col text-white relative isolate">
+      <title>{pageTitle}</title>
       {/* Top bar with Model Selector (hidden on mobile, shown in navbar on mobile) */}
       <header className="hidden md:flex shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 items-center justify-between backdrop-blur-xl bg-[#161118]/80 z-20">
         <div className="flex items-center gap-3">

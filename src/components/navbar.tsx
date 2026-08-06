@@ -105,8 +105,8 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
     useEffect(() => {
         let isMounted = true;
 
-        const loadAllSessions = async () => {
-            setIsLoading(true);
+        const loadAllSessions = async (showLoader = true) => {
+            if (showLoader) setIsLoading(true);
             try {
                 const data = await fetchAllHistory({ account_id: accountId });
                 const sessionItems = Object.entries(data.sessions)
@@ -131,10 +131,10 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
         };
 
         const handleSessionUpdate = () => {
-            void loadAllSessions();
+            void loadAllSessions(false);
         };
 
-        void loadAllSessions();
+        void loadAllSessions(true);
         window.addEventListener(CHAT_SESSIONS_UPDATED_EVENT, handleSessionUpdate);
 
         return () => {
@@ -232,15 +232,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                     <div className="text-xs uppercase tracking-wider text-white/40 px-2 py-1.5 font-medium">История чатов</div>
 
                     <ul className="flex-1 overflow-y-auto overflow-x-hidden space-y-1 pr-1">
-                        {isLoading && (
-                            <li className="space-y-2 p-2">
-                                <Skeleton className="h-9 w-full bg-white/[0.05]" />
-                                <Skeleton className="h-9 w-[92%] bg-white/[0.05]" />
-                                <Skeleton className="h-9 w-[85%] bg-white/[0.05]" />
-                            </li>
-                        )}
-
-                        {!isLoading && sessions.length === 0 && (
+                        {sessions.length === 0 && (
                             <li className="p-3 text-sm text-white/40 text-center rounded-xl bg-white/[0.02] border border-white/5 my-2">
                                 Чатов пока нет
                             </li>

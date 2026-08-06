@@ -112,26 +112,7 @@ export default function Home() {
     }
   }, [messages]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
 
-    const firstUserMsg = messages.find((m) => m.role === "user")?.content?.trim();
-    const chatTitle = firstUserMsg
-      ? firstUserMsg.length > 50
-        ? `${firstUserMsg.slice(0, 50)}...`
-        : firstUserMsg
-      : sessionId
-      ? `Чат ${sessionId.slice(0, 8)}`
-      : "Qual AI";
-
-    document.title = messages.length > 0 ? `QualAI | ${chatTitle}` : "Qual AI";
-
-    return () => {
-      document.title = "Qual AI";
-    };
-  }, [messages, sessionId]);
 
   const accountId = user?.id ?? "guest";
 
@@ -196,8 +177,19 @@ export default function Home() {
     }
   };
 
+  const firstUserMsg = messages.find((m) => m.role === "user")?.content?.trim();
+  const chatTitle = firstUserMsg
+    ? firstUserMsg.length > 50
+      ? `${firstUserMsg.slice(0, 50)}...`
+      : firstUserMsg
+    : sessionId
+    ? `Чат ${sessionId.slice(0, 8)}`
+    : "Qual AI";
+  const pageTitle = messages.length > 0 ? `QualAI | ${chatTitle}` : "Qual AI";
+
   return (
     <div className="flex h-full min-h-0 flex-col text-white relative isolate">
+      <title>{pageTitle}</title>
       {/* Desktop Top bar with Model Selector (hidden on mobile, shown in navbar on mobile) */}
       <header className="hidden md:flex shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 items-center justify-between backdrop-blur-xl bg-[#161118]/80 z-20">
         <div className="flex items-center gap-3">
