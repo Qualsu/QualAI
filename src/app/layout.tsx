@@ -5,6 +5,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { ThemeProvider } from "@/components/theme-provider";
 import PWARegister from "@/components/pwa-register";
+import { APP_NAME } from "@/config";
+import { images, pages } from "@/config";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -20,17 +22,17 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Qual AI",
-  description: "Qual AI",
-  manifest: "/manifest.json",
+  title: APP_NAME,
+  description: APP_NAME,
+  manifest: images.MANIFEST,
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Qual AI",
+    title: APP_NAME,
   },
   icons: {
-    icon: "/icon.png",
-    apple: "/icon.png",
+    icon: images.ICON,
+    apple: images.ICON,
   },
 };
 
@@ -42,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className="dark" style={{ colorScheme: "dark" }}>
       <head>
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href={images.MANIFEST} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
@@ -57,8 +59,8 @@ export default function RootLayout({
             disableTransitionOnChange
         >
           <ClerkProvider
-            signInUrl="/auth/sign-in"
-            signUpUrl="/auth/sign-up"
+            signInUrl={pages.AUTH.SIGN_IN}
+            signUpUrl={pages.AUTH.SIGN_UP}
             appearance={{
               baseTheme: dark,
               variables: {

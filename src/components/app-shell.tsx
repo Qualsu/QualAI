@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import { Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { APP_NAME, images, pages } from "@/config";
 
 import ModelSelector from "@/components/model-selector";
 
@@ -49,7 +50,7 @@ export default function AppShell({ children }: AppShellProps) {
               <Menu size={20} />
             </button>
             <Link
-              href="/"
+              href={pages.ROOT}
               onClick={() => {
                 if (typeof window !== "undefined") {
                   window.dispatchEvent(new Event("new-chat"));
@@ -57,7 +58,7 @@ export default function AppShell({ children }: AppShellProps) {
               }}
               className="flex items-center shrink-0"
             >
-              <Image src="/logo.png" width={95} height={22} alt="Qual AI" className="object-contain" />
+              <Image src={images.LOGO} width={95} height={22} alt={APP_NAME} className="object-contain" />
             </Link>
           </div>
 

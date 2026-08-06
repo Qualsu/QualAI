@@ -20,6 +20,7 @@ import {
     AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { Skeleton } from "./ui/skeleton";
+import { APP_NAME, images, pages } from "@/config";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const NEW_CHAT_EVENT = "new-chat";
@@ -70,7 +71,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
         if (typeof window !== "undefined") {
             window.dispatchEvent(new Event(NEW_CHAT_EVENT));
         }
-        router.push("/");
+        router.push(pages.ROOT);
         onMobileClose();
     };
 
@@ -95,7 +96,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
     }, []);
 
     const activeSessionId = useMemo(() => {
-        if (!currentPath || currentPath === "/") {
+        if (!currentPath || currentPath === pages.ROOT) {
             return null;
         }
 
@@ -191,7 +192,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                         onClick={handleNewChat}
                         className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer text-left"
                     >
-                        <Image src="/logo.png" width={140} height={32} alt="Qual AI logo" className="object-contain drop-shadow-[0_4px_12px_rgba(168,85,247,0.25)]" />
+                        <Image src={images.LOGO} width={140} height={32} alt={`${APP_NAME} logo`} className="object-contain drop-shadow-[0_4px_12px_rgba(168,85,247,0.25)]" />
                     </button>
                 )}
                 {/* Desktop: collapse toggle */}

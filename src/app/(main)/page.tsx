@@ -10,6 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import { ArrowRight, Send } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { APP_NAME, images, pages } from "@/config";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const NEW_CHAT_EVENT = "new-chat";
@@ -79,8 +80,8 @@ export default function Home() {
     setError(null);
     setIsSending(false);
     if (typeof window !== "undefined") {
-      if (window.location.pathname !== "/") {
-        window.history.pushState(null, "", "/");
+      if (window.location.pathname !== pages.ROOT) {
+        window.history.pushState(null, "", pages.ROOT);
       }
       window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
     }
@@ -92,7 +93,7 @@ export default function Home() {
     };
 
     const handlePopState = () => {
-      if (typeof window !== "undefined" && window.location.pathname === "/") {
+      if (typeof window !== "undefined" && window.location.pathname === pages.ROOT) {
         resetToNewChat();
       }
     };
@@ -184,8 +185,8 @@ export default function Home() {
       : firstUserMsg
     : sessionId
     ? `Чат ${sessionId.slice(0, 8)}`
-    : "Qual AI";
-  const pageTitle = messages.length > 0 ? `QualAI | ${chatTitle}` : "Qual AI";
+    : APP_NAME;
+  const pageTitle = messages.length > 0 ? `${APP_NAME} | ${chatTitle}` : APP_NAME;
 
   return (
     <div className="flex h-full min-h-0 flex-col text-white relative isolate">
@@ -204,10 +205,10 @@ export default function Home() {
             <div className="relative mb-6">
               <div className="pointer-events-none absolute -inset-4 rounded-full bg-purple-600/20 blur-2xl animate-pulse" />
               <Image
-                src="/mini-logo.svg"
+                src={images.MINI_LOGO}
                 width={80}
                 height={80}
-                alt="Qual AI"
+                alt={APP_NAME}
                 className="relative drop-shadow-[0_12px_30px_rgba(168,85,247,0.35)]"
               />
             </div>
@@ -303,7 +304,7 @@ export default function Home() {
 
           {error && <p className="mt-3 text-xs sm:text-sm text-red-400 text-center">{error}</p>}
           <div className="mt-2.5 text-[11px] text-white/35 text-center">
-            Qual AI • Кодим так, что Интернет плачет
+            {APP_NAME} • Кодим так, что Интернет плачет
           </div>
         </div>
       </footer>
