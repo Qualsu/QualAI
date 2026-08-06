@@ -48,7 +48,15 @@ export default function AppShell({ children }: AppShellProps) {
             >
               <Menu size={20} />
             </button>
-            <Link href="/" className="flex items-center shrink-0">
+            <Link
+              href="/"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new Event("new-chat"));
+                }
+              }}
+              className="flex items-center shrink-0"
+            >
               <Image src="/logo.png" width={95} height={22} alt="Qual AI" className="object-contain" />
             </Link>
           </div>

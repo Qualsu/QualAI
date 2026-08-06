@@ -34,15 +34,6 @@ function TypingDots() {
   );
 }
 
-function resolveAssistantReply(responseText: string, history: ChatMessage[]): string {
-  if (responseText?.trim()) {
-    return responseText.trim();
-  }
-
-  const lastAssistant = [...history].reverse().find((item) => item.role === "assistant");
-  return lastAssistant?.content ?? "";
-}
-
 export default function Chat() {
   const { user } = useUser();
   const params = useParams<{ sessionId: string }>();
@@ -56,6 +47,11 @@ export default function Chat() {
   const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const modelRef = useRef(model);
+
+  useEffect(() => {
+    modelRef.current = model;
+  }, [model]);
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -105,7 +101,7 @@ export default function Chat() {
       if (lastMsg && lastMsg.role === "user") {
         setMessages([
           ...history,
-          { role: "assistant", content: TYPING_PLACEHOLDER, model_id: modelId || model },
+          { role: "assistant", content: TYPING_PLACEHOLDER, model_id: modelId || modelRef.current },
         ]);
         setIsSending(true);
 
@@ -158,6 +154,9 @@ export default function Chat() {
         if (isMounted) {
           setError(null);
           checkPendingAssistantReply(data.history, data.model_id);
+          if (data.model_id) {
+            setModel(data.model_id);
+          }
         }
       } catch (error: unknown) {
         if (isMounted) {
@@ -190,7 +189,7 @@ export default function Chat() {
         window.clearInterval(pollInterval);
       }
     };
-  }, [accountId, sessionId, model, setModel]);
+  }, [accountId, sessionId, setModel]);
 
   const handleSend = async () => {
     const trimmedMessage = message.trim();

@@ -22,6 +22,7 @@ import {
 import { Skeleton } from "./ui/skeleton";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
+const NEW_CHAT_EVENT = "new-chat";
 
 type NavbarProps = {
     isCollapsed: boolean;
@@ -60,17 +61,46 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
     const [sessions, setSessions] = useState<SessionItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+    const [currentPath, setCurrentPath] = useState(pathname);
 
     const accountId = user?.id ?? "guest";
     const showFull = !isCollapsed || isMobileOpen;
 
+    const handleNewChat = () => {
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event(NEW_CHAT_EVENT));
+        }
+        router.push("/");
+        onMobileClose();
+    };
+
+    useEffect(() => {
+        setCurrentPath(pathname);
+    }, [pathname]);
+
+    useEffect(() => {
+        const handleLocationSync = () => {
+            if (typeof window !== "undefined") {
+                setCurrentPath(window.location.pathname);
+            }
+        };
+
+        window.addEventListener("popstate", handleLocationSync);
+        window.addEventListener(CHAT_SESSIONS_UPDATED_EVENT, handleLocationSync);
+
+        return () => {
+            window.removeEventListener("popstate", handleLocationSync);
+            window.removeEventListener(CHAT_SESSIONS_UPDATED_EVENT, handleLocationSync);
+        };
+    }, []);
+
     const activeSessionId = useMemo(() => {
-        if (pathname === "/") {
+        if (!currentPath || currentPath === "/") {
             return null;
         }
 
-        return pathname.slice(1);
-    }, [pathname]);
+        return currentPath.slice(1);
+    }, [currentPath]);
 
     useEffect(() => {
         let isMounted = true;
@@ -139,7 +169,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
             await clearChatSession({ account_id: accountId, session_id: sessionId });
             setSessions((prev) => prev.filter((s) => s.sessionId !== sessionId));
             if (activeSessionId === sessionId) {
-                router.push("/");
+                handleNewChat();
             }
         } catch {
             // silently fail
@@ -158,7 +188,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                 {showFull && (
                     <button
                         type="button"
-                        onClick={() => { router.push("/"); onMobileClose(); }}
+                        onClick={handleNewChat}
                         className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer text-left"
                     >
                         <Image src="/logo.png" width={140} height={32} alt="Qual AI logo" className="object-contain drop-shadow-[0_4px_12px_rgba(168,85,247,0.25)]" />
@@ -188,7 +218,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                 <button
                     type="button"
                     className={`primary-button w-full shadow-[0_8px_20px_rgba(0,0,0,0.25)] ${!showFull ? "justify-center px-0 py-2.5" : "justify-start gap-2.5 px-4 py-2.5"}`}
-                    onClick={() => { router.push("/"); onMobileClose(); }}
+                    onClick={handleNewChat}
                 >
                     <Plus size={18} className="text-purple-300" />
                     {showFull && <span className="text-sm font-medium">Новый чат</span>}

@@ -8,8 +8,9 @@ const MODEL_STORAGE_KEY = "chat-model-id";
 
 const DEFAULT_MODELS: ModelItem[] = [
   { id: "QualAI-1.5", name: "QualAI-1.5", badge: "Best", category: "main" },
-  { id: "QualAI-1.5-mini", name: "QualAI-1.5-mini", badge: "Best", category: "main" },
-  { id: "QualAI-1.5-micro", name: "QualAI-1.5-micro", badge: "Fast", category: "main" },
+  { id: "QualAI-1.5-mini", name: "QualAI-1.5-mini", category: "main" },
+  { id: "QualAI-1.6-nano", name: "QualAI-1.6-nano", category: "main", badge: "Fast" },
+  { id: "QualAI-1.5-micro", name: "QualAI-1.5-micro (nano)", badge: "Fast", category: "old" },
   { id: "QualAI-Code", name: "QualAI-Code", category: "main" },
   { id: "QualAI-Code-Max", name: "QualAI-Code-Max", category: "main" },
   { id: "QualAI-1", name: "QualAI-1", category: "old" },
@@ -39,9 +40,7 @@ function getBadge(id: string, name?: string, givenBadge?: string | null): string
 
   if (
     cleanId === "qualai15" ||
-    cleanName === "qualai15" ||
-    cleanId === "qualai15mini" ||
-    cleanName === "qualai15mini"
+    cleanName === "qualai15"
   ) {
     return "Best";
   }
@@ -60,7 +59,7 @@ function getCategory(id: string, name?: string, givenCategory?: string | null): 
     return givenCategory.trim();
   }
   const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
-  if (cleanId === "qualai1" || cleanId === "qualai1mini") {
+  if (cleanId === "qualai1" || cleanId === "qualai1mini" || cleanId === "qualai15micro") {
     return "old";
   }
   return "main";

@@ -9,10 +9,10 @@ import { useModel } from "@/lib/model-context";
 import { useUser } from "@clerk/nextjs";
 import { ArrowRight, Send } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
+const NEW_CHAT_EVENT = "new-chat";
 const TYPING_PLACEHOLDER = "__typing__";
 
 function TypingDots() {
@@ -32,15 +32,6 @@ function TypingDots() {
       />
     </div>
   );
-}
-
-function resolveAssistantReply(responseText: string, history: ChatMessage[]): string {
-  if (responseText?.trim()) {
-    return responseText.trim();
-  }
-
-  const lastAssistant = [...history].reverse().find((item) => item.role === "assistant");
-  return lastAssistant?.content ?? "";
 }
 
 const QUICK_PROMPTS = [
@@ -68,10 +59,10 @@ const QUICK_PROMPTS = [
 
 export default function Home() {
   const { user } = useUser();
-  const router = useRouter();
   const { model, setModel, getModelLabel } = useModel();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,53 +72,68 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
+  const resetToNewChat = () => {
+    setMessages([]);
+    setSessionId(null);
+    setMessage("");
+    setError(null);
+    setIsSending(false);
+    if (typeof window !== "undefined") {
+      if (window.location.pathname !== "/") {
+        window.history.pushState(null, "", "/");
+      }
+      window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
+    }
+  };
+
+  useEffect(() => {
+    const handleNewChatEvent = () => {
+      resetToNewChat();
+    };
+
+    const handlePopState = () => {
+      if (typeof window !== "undefined" && window.location.pathname === "/") {
+        resetToNewChat();
+      }
+    };
+
+    window.addEventListener(NEW_CHAT_EVENT, handleNewChatEvent);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener(NEW_CHAT_EVENT, handleNewChatEvent);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   useEffect(() => {
     if (messages.length > 0) {
       scrollToBottom("smooth");
     }
   }, [messages]);
 
-  const accountId = user?.id ?? "guest";
-
-  const animateAssistantMessage = async (text: string, modelId?: string) => {
-    const targetText = text.trim();
-    if (!targetText) {
-      setMessages((prev) => {
-        if (prev.length === 0) {
-          return prev;
-        }
-
-        const next = [...prev];
-        next[next.length - 1] = { role: "assistant", content: "", model_id: modelId };
-        return next;
-      });
+  useEffect(() => {
+    if (typeof window === "undefined") {
       return;
     }
 
-    await new Promise<void>((resolve) => {
-      let position = 0;
-      const step = Math.max(1, Math.ceil(targetText.length / 80));
-      const intervalId = window.setInterval(() => {
-        position = Math.min(position + step, targetText.length);
-        const chunk = targetText.slice(0, position);
+    const firstUserMsg = messages.find((m) => m.role === "user")?.content?.trim();
+    const chatTitle = firstUserMsg
+      ? firstUserMsg.length > 50
+        ? `${firstUserMsg.slice(0, 50)}...`
+        : firstUserMsg
+      : sessionId
+      ? `Чат ${sessionId.slice(0, 8)}`
+      : "Qual AI";
 
-        setMessages((prev) => {
-          if (prev.length === 0) {
-            return prev;
-          }
+    document.title = messages.length > 0 ? `QualAI | ${chatTitle}` : "Qual AI";
 
-          const next = [...prev];
-          next[next.length - 1] = { role: "assistant", content: chunk, model_id: modelId };
-          return next;
-        });
+    return () => {
+      document.title = "Qual AI";
+    };
+  }, [messages, sessionId]);
 
-        if (position >= targetText.length) {
-          window.clearInterval(intervalId);
-          resolve();
-        }
-      }, 22);
-    });
-  };
+  const accountId = user?.id ?? "guest";
 
   const handleSend = async (textToSend?: string) => {
     const promptToSend = (textToSend ?? message).trim();
@@ -146,18 +152,20 @@ export default function Home() {
     ]);
 
     try {
-      await sendChatMessageStream(
+      const response = await sendChatMessageStream(
         {
           account_id: accountId,
           message: promptToSend,
           model_id: model,
+          session_id: sessionId ?? undefined,
         },
         (initData) => {
           setModel(initData.model_id);
+          setSessionId(initData.session_id);
           if (typeof window !== "undefined") {
+            window.history.pushState(null, "", `/${initData.session_id}`);
             window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
           }
-          router.push(`/${initData.session_id}`);
         },
         (chunk) => {
           setMessages((prev) => {
@@ -175,6 +183,11 @@ export default function Home() {
           });
         }
       );
+
+      setModel(response.model_id);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
+      }
     } catch {
       setMessages((prev) => prev.slice(0, -1));
       setError("Не удалось отправить сообщение. Проверь API и попробуй снова.");
