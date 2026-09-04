@@ -3,6 +3,7 @@ export type ModelItem = {
   name: string;
   badge?: string | null;
   category?: string | null;
+  vision?: boolean;
 };
 
 export type AvailableModelsResponse = {
@@ -15,4 +16,6 @@ export type ModelContextType = {
   setModel: (model: string) => void;
   models: ModelItem[];
   getModelLabel: (modelId: string) => string;
+  isVisionSupported: (modelId?: string) => boolean;
+  isCurrentModelVision: boolean;
 };

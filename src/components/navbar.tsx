@@ -32,9 +32,14 @@ function buildSessionPreview(
     history: ChatMessage[],
     startedAt: string,
 ): SessionItem {
-    const firstUserMessage = history.find((message) => message.role === "user")?.content;
+    const firstUserMessage = history.find((message) => message.role === "user");
     const fallback = `Чат ${sessionId.slice(0, 8)}`;
-    const preview = (firstUserMessage ?? fallback).trim();
+    let preview = fallback;
+    if (firstUserMessage?.content?.trim()) {
+        preview = firstUserMessage.content.trim();
+    } else if (firstUserMessage?.images && firstUserMessage.images.length > 0) {
+        preview = "📷 Изображение";
+    }
 
     return {
         sessionId,

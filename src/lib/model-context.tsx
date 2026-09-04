@@ -22,8 +22,8 @@ function getBadge(id: string, name?: string, givenBadge?: string | null): string
   }
 
   if (
-    cleanId === "qualai15" ||
-    cleanName === "qualai15"
+    cleanId === "qualai2" ||
+    cleanName === "qualai2"
   ) {
     return "Best";
   }
@@ -35,6 +35,22 @@ function getBadge(id: string, name?: string, givenBadge?: string | null): string
   });
 
   return def?.badge || null;
+}
+
+function getVision(id: string, name?: string, givenVision?: boolean): boolean {
+  if (typeof givenVision === "boolean") {
+    return givenVision;
+  }
+  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
+  const cleanName = (name || "").toLowerCase().replace(/[-_\s]/g, "");
+  return (
+    cleanId === "qualai2" ||
+    cleanName === "qualai2" ||
+    cleanId === "qualai2code" ||
+    cleanName === "qualai2code" ||
+    cleanId === "qualaicode2" ||
+    cleanName === "qualaicode2"
+  );
 }
 
 function getCategory(id: string, name?: string, givenCategory?: string | null): string {
@@ -61,6 +77,7 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
         name: id,
         badge: getBadge(id, id, null),
         category: getCategory(id, id, null),
+        vision: getVision(id, id),
       }));
     }
     return (dataModels as ModelItem[])
@@ -70,6 +87,7 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
         name: m.name || m.id,
         badge: getBadge(m.id, m.name, m.badge),
         category: getCategory(m.id, m.name, m.category),
+        vision: getVision(m.id, m.name, m.vision),
       }));
   }
 
@@ -82,6 +100,7 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
           name: val,
           badge: getBadge(key, val, null),
           category: getCategory(key, val, null),
+          vision: getVision(key, val),
         });
       } else if (val && typeof val === "object") {
         const itemObj = val as Record<string, unknown>;
@@ -89,11 +108,13 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
         const name = (itemObj.name as string) || (itemObj.label as string) || id;
         const givenBadge = (itemObj.badge as string) || null;
         const givenCategory = (itemObj.category as string) || null;
+        const givenVision = typeof itemObj.vision === "boolean" ? itemObj.vision : undefined;
         items.push({
           id,
           name,
           badge: getBadge(id, name, givenBadge),
           category: getCategory(id, name, givenCategory),
+          vision: getVision(id, name, givenVision),
         });
       }
     }
@@ -104,13 +125,28 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
 }
 
 export function ModelProvider({ children }: { children: React.ReactNode }) {
-  const [model, setModel] = useState<string>("QualAI-1.5");
+  const [model, setModel] = useState<string>("QualAI-2");
   const [models, setModels] = useState<ModelItem[]>(DEFAULT_MODELS);
 
   const getModelLabel = (modelId: string): string => {
     const found = models.find((m) => m.id === modelId || m.name === modelId);
     return found ? found.name : modelId || "QualAI";
   };
+
+  const isVisionSupported = (modelId?: string): boolean => {
+    const targetId = modelId || model;
+    const found = models.find(
+      (m) =>
+        m.id.toLowerCase() === targetId.toLowerCase() ||
+        m.name.toLowerCase() === targetId.toLowerCase()
+    );
+    if (found && typeof found.vision === "boolean") {
+      return found.vision;
+    }
+    return getVision(targetId, targetId);
+  };
+
+  const isCurrentModelVision = isVisionSupported(model);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -121,8 +157,8 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
     if (storedModel && storedModel.startsWith("QualAI")) {
       setModel(storedModel);
     } else {
-      setModel("QualAI-1.5");
-      window.localStorage.setItem(MODEL_STORAGE_KEY, "QualAI-1.5");
+      setModel("QualAI-2");
+      window.localStorage.setItem(MODEL_STORAGE_KEY, "QualAI-2");
     }
   }, []);
 
@@ -142,7 +178,7 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
           if (prev && parsedModels.some((m) => m.id === prev)) {
             return prev;
           }
-          return data.default_model_id || "QualAI-1.5";
+          return data.default_model_id || "QualAI-2";
         });
       } catch {
         // Keep fallback options.
@@ -170,6 +206,8 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
         setModel: handleSetModel,
         models,
         getModelLabel,
+        isVisionSupported,
+        isCurrentModelVision,
       }}
     >
       {children}

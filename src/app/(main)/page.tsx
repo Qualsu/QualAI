@@ -1,16 +1,19 @@
 'use client';
 
 import { sendChatMessageStream } from "@/app/api/chat";
-import type { ChatMessage } from "@/config/types";
+import type { AttachedImage, ChatMessage } from "@/config/types";
 import ModelSelector from "@/components/model-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useModel } from "@/lib/model-context";
 import { useUser } from "@clerk/nextjs";
-import { AlertCircle, ArrowRight, Send } from "lucide-react";
+import { AlertCircle, ArrowRight, ImagePlus, Send } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { APP_NAME, images, pages } from "@/config";
+import { processImageFile } from "@/lib/image-utils";
+import { ImageAttachmentBar } from "@/components/image-attachment-bar";
+import { ImageLightbox, MessageImages } from "@/components/chat-images";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const NEW_CHAT_EVENT = "new-chat";
@@ -60,14 +63,21 @@ const QUICK_PROMPTS = [
 
 export default function Home() {
   const { user } = useUser();
-  const { model, setModel, getModelLabel } = useModel();
+  const { model, setModel, getModelLabel, isCurrentModelVision } = useModel();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([]);
+  const [isProcessingImages, setIsProcessingImages] = useState(false);
+  const [activeLightboxImage, setActiveLightboxImage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef(0);
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -77,6 +87,7 @@ export default function Home() {
     setMessages([]);
     setSessionId(null);
     setMessage("");
+    setAttachedImages([]);
     setError(null);
     setIsSending(false);
     if (typeof window !== "undefined") {
@@ -84,6 +95,104 @@ export default function Home() {
         window.history.pushState(null, "", pages.ROOT);
       }
       window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
+    }
+  };
+
+  const handleFiles = useCallback(
+    async (files: FileList | File[]) => {
+      const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+      if (imageFiles.length === 0) return;
+
+      setIsProcessingImages(true);
+      setError(null);
+
+      // Auto switch to QualAI-2 if current model is not vision-capable
+      if (!isCurrentModelVision) {
+        setModel("QualAI-2");
+      }
+
+      try {
+        const processed = await Promise.all(
+          imageFiles.map(async (file) => {
+            const dataUrl = await processImageFile(file);
+            return {
+              id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+              url: dataUrl,
+              name: file.name,
+            };
+          })
+        );
+        setAttachedImages((prev) => [...prev, ...processed]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Ошибка при обработке изображения");
+      } finally {
+        setIsProcessingImages(false);
+      }
+    },
+    [isCurrentModelVision, setModel]
+  );
+
+  const handleRemoveImage = (id: string) => {
+    setAttachedImages((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      void handleFiles(e.target.files);
+      e.target.value = "";
+    }
+  };
+
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const imageFiles: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith("image/")) {
+          const file = items[i].getAsFile();
+          if (file) imageFiles.push(file);
+        }
+      }
+
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        void handleFiles(imageFiles);
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [handleFiles]);
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current += 1;
+    if (e.dataTransfer.types.includes("Files")) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current -= 1;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter.current = 0;
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      void handleFiles(e.dataTransfer.files);
     }
   };
 
@@ -113,24 +222,36 @@ export default function Home() {
     }
   }, [messages]);
 
-
-
   const accountId = user?.id ?? "guest";
 
   const handleSend = async (textToSend?: string) => {
     const promptToSend = (textToSend ?? message).trim();
-    if (!promptToSend || isSending) {
+    if ((!promptToSend && attachedImages.length === 0) || isSending || isProcessingImages) {
       return;
     }
+
+    const currentImages = [...attachedImages];
+    const imagesToSend = currentImages.map((img) => img.url);
 
     setIsSending(true);
     setError(null);
     setMessage("");
+    setAttachedImages([]);
+
+    let activeModel = model;
+    if (imagesToSend.length > 0 && !isCurrentModelVision) {
+      activeModel = "QualAI-2";
+      setModel("QualAI-2");
+    }
 
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: promptToSend },
-      { role: "assistant", content: TYPING_PLACEHOLDER, model_id: model },
+      {
+        role: "user",
+        content: promptToSend,
+        images: imagesToSend.length > 0 ? imagesToSend : undefined,
+      },
+      { role: "assistant", content: TYPING_PLACEHOLDER, model_id: activeModel },
     ]);
 
     try {
@@ -138,8 +259,9 @@ export default function Home() {
         {
           account_id: accountId,
           message: promptToSend,
-          model_id: model,
+          model_id: activeModel,
           session_id: sessionId ?? undefined,
+          images: imagesToSend.length > 0 ? imagesToSend : undefined,
         },
         (initData) => {
           setModel(initData.model_id);
@@ -179,20 +301,43 @@ export default function Home() {
     }
   };
 
-  const firstUserMsg = messages.find((m) => m.role === "user")?.content?.trim();
-  const chatTitle = firstUserMsg
-    ? firstUserMsg.length > 50
-      ? `${firstUserMsg.slice(0, 50)}...`
-      : firstUserMsg
+  const firstUserMsg = messages.find((m) => m.role === "user");
+  const firstUserText = firstUserMsg?.content?.trim();
+  const chatTitle = firstUserText
+    ? firstUserText.length > 50
+      ? `${firstUserText.slice(0, 50)}...`
+      : firstUserText
+    : firstUserMsg?.images && firstUserMsg.images.length > 0
+    ? "📷 Изображение"
     : sessionId
     ? `Чат ${sessionId.slice(0, 8)}`
     : APP_NAME;
   const pageTitle = messages.length > 0 ? `${APP_NAME} | ${chatTitle}` : APP_NAME;
 
   return (
-    <div className="flex h-full min-h-0 flex-col text-white relative isolate">
+    <div
+      className="flex h-full min-h-0 flex-col text-white relative isolate"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <title>{pageTitle}</title>
-      {/* Desktop Top bar with Model Selector (hidden on mobile, shown in navbar on mobile) */}
+
+      {/* Drag & drop overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#161118]/85 backdrop-blur-md border-2 border-dashed border-purple-500/80 rounded-3xl m-4 pointer-events-none animate-in fade-in duration-150">
+          <div className="p-4 rounded-2xl bg-purple-500/20 text-purple-300 mb-3 shadow-[0_0_30px_rgba(168,85,247,0.4)]">
+            <ImagePlus size={36} />
+          </div>
+          <p className="text-lg font-semibold text-white">Перетащите изображения сюда</p>
+          <p className="text-sm text-white/60 mt-1">PNG, JPG, WEBP или GIF</p>
+        </div>
+      )}
+
+      <ImageLightbox src={activeLightboxImage} onClose={() => setActiveLightboxImage(null)} />
+
+      {/* Desktop Top bar with Model Selector */}
       <header className="hidden md:flex shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 items-center justify-between backdrop-blur-xl bg-[#161118]/80 z-20">
         <div className="flex items-center gap-3">
           <ModelSelector />
@@ -218,10 +363,10 @@ export default function Home() {
               Кодим так, что Интернет плачет
             </h1>
             <p className="text-sm sm:text-base text-white/70 text-center max-w-lg mb-8 sm:mb-12">
-              Qual AI — Искусственный интеллект от команды Qualsu для разработки, генерации кода и решения любых задач (Модели хуже GPT-3)
+              Qual AI — Искусственный интеллект от команды Qualsu для разработки, генерации кода, работы с изображениями и решения любых задач
             </p>
 
-            {/* Quick prompt cards in Qualsu ProjectCard style */}
+            {/* Quick prompt cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full max-w-3xl">
               {QUICK_PROMPTS.map((item, idx) => (
                 <button
@@ -266,6 +411,9 @@ export default function Home() {
                       : "surface-panel border-white/10 bg-white/[0.04] text-white/95 rounded-2xl rounded-tl-sm shadow-[0_12px_40px_rgba(0,0,0,0.3)] backdrop-blur-2xl"
                   }`}
                 >
+                  {item.images && item.images.length > 0 && (
+                    <MessageImages images={item.images} onImageClick={setActiveLightboxImage} />
+                  )}
                   {item.role === "assistant" && item.content === TYPING_PLACEHOLDER ? (
                     <TypingDots />
                   ) : (
@@ -282,25 +430,59 @@ export default function Home() {
       {/* Floating Bottom Input Dock */}
       <footer className="shrink-0 px-4 sm:px-6 pb-6 pt-2 z-20">
         <div className="max-w-4xl mx-auto">
-          <div className="surface-panel p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl border-white/15 bg-[#191118]/85 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] flex items-center gap-2 sm:gap-3 transition-all focus-within:border-purple-400/50 focus-within:shadow-[0_20px_60px_rgba(168,85,247,0.15)]">
-            <Input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Спроси о чём угодно или попроси написать код..."
+          <div className="surface-panel rounded-2xl sm:rounded-3xl border-white/15 bg-[#191118]/85 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden transition-all focus-within:border-purple-400/50 focus-within:shadow-[0_20px_60px_rgba(168,85,247,0.15)]">
+            <ImageAttachmentBar
+              images={attachedImages}
+              onRemove={handleRemoveImage}
+              isProcessing={isProcessingImages}
               disabled={isSending}
-              className="flex-1 bg-transparent border-0 text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 px-3 py-2 text-sm sm:text-base"
+              isVisionSupported={isCurrentModelVision}
+              onSwitchToVisionModel={() => setModel("QualAI-2")}
             />
-            <Button
-              onClick={() => handleSend()}
-              disabled={isSending || !message.trim()}
-              size="icon"
-              className="rounded-xl sm:rounded-2xl h-10 w-10 sm:h-11 sm:w-11 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border border-purple-400/40 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)] hover:shadow-[0_0_30px_rgba(168,85,247,0.55)] transition-all transform hover:-translate-y-0.5 disabled:opacity-30 disabled:hover:translate-y-0 shrink-0"
-              aria-label="Отправить"
-            >
-              <Send size={18} />
-            </Button>
+            <div className="p-2 sm:p-2.5 flex items-center gap-2 sm:gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSending || isProcessingImages}
+                size="icon"
+                variant="ghost"
+                className="rounded-xl sm:rounded-2xl h-10 w-10 sm:h-11 sm:w-11 text-white/70 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+                title="Прикрепить изображение"
+                aria-label="Прикрепить изображение"
+              >
+                <ImagePlus size={20} />
+              </Button>
+              <Input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                placeholder={
+                  attachedImages.length > 0
+                    ? "Добавь описание или нажми Enter для отправки..."
+                    : "Спроси о чём угодно или попроси написать код..."
+                }
+                disabled={isSending}
+                className="flex-1 bg-transparent border-0 text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 sm:px-3 py-2 text-sm sm:text-base"
+              />
+              <Button
+                onClick={() => handleSend()}
+                disabled={isSending || isProcessingImages || (!message.trim() && attachedImages.length === 0)}
+                size="icon"
+                className="rounded-xl sm:rounded-2xl h-10 w-10 sm:h-11 sm:w-11 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border border-purple-400/40 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)] hover:shadow-[0_0_30px_rgba(168,85,247,0.55)] transition-all transform hover:-translate-y-0.5 disabled:opacity-30 disabled:hover:translate-y-0 shrink-0"
+                aria-label="Отправить"
+              >
+                <Send size={18} />
+              </Button>
+            </div>
           </div>
 
           {error && (

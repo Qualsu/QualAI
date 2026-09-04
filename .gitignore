@@ -44,3 +44,4 @@ chat_history.json
 __pycache__/
 *.pyc
 server/
+benchmark.md

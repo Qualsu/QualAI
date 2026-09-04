@@ -4,6 +4,7 @@ export type ChatMessage = {
   role: ChatRole;
   content: string;
   model_id?: string;
+  images?: string[];
 };
 
 export type ChatRequest = {
@@ -12,6 +13,7 @@ export type ChatRequest = {
   model_id?: string;
   session_id?: string;
   max_history_turns?: number;
+  images?: string[];
 };
 
 export type ChatResponse = {

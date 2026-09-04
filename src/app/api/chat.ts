@@ -13,7 +13,7 @@ import type {
 export async function sendChatMessage(payload: ChatRequest): Promise<ChatResponse> {
   try {
     const { data } = await apiClient.post<ChatResponse>("/chat", payload, {
-      timeout: 180000,
+      timeout: 300000,
     });
     return data;
   } catch (error: unknown) {
@@ -29,7 +29,7 @@ export async function sendChatMessage(payload: ChatRequest): Promise<ChatRespons
         throw new Error("Слишком много запросов (429). Лимит: 10 запросов в минуту. Пожалуйста, подождите.");
       }
       if (resp?.status === 504) {
-        throw new Error("Превышено время ожидания ответа от модели (120 сек).");
+        throw new Error("Превышено время ожидания ответа от модели (300 сек).");
       }
     }
     throw error;
@@ -82,7 +82,7 @@ export async function sendChatMessageStream(
       throw new Error("Слишком много запросов (429). Лимит: 10 запросов в минуту. Пожалуйста, подождите.");
     }
     if (response.status === 504) {
-      throw new Error("Превышено время ожидания генерации ответа (120 сек).");
+      throw new Error("Превышено время ожидания генерации ответа (300 сек).");
     }
     throw new Error(`Ошибка запроса к серверу (${response.status})`);
   }
