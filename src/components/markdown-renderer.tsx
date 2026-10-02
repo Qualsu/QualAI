@@ -3,18 +3,16 @@
 import type { MarkdownRendererProps } from "@/config/types";
 import { CodeBlock } from "@/components/code-block";
 import React from "react";
-import Markdown from "react-markdown";
+import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  if (!content) return null;
-
-  return (
-    <div className={`prose-custom text-sm sm:text-base leading-relaxed ${className ?? ""}`}>
-      <Markdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          pre(props) {
+export const MarkdownRenderer = React.memo(function MarkdownRenderer({
+  content,
+  className,
+}: MarkdownRendererProps) {
+  const components: Components = React.useMemo(
+    () => ({
+      pre(props) {
             const { children } = props;
             let code = "";
             let language = "";
@@ -145,6 +143,18 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             );
           },
 
+          img(props) {
+            return (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={props.src}
+                alt={props.alt || "Изображение"}
+                className="my-3 max-h-80 max-w-full rounded-xl object-contain shadow-md"
+                loading="lazy"
+              />
+            );
+          },
+
           strong(props) {
             return (
               <strong className="font-semibold text-white">
@@ -214,10 +224,17 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               </td>
             );
           },
-        }}
-      >
+        }),
+    []
+  );
+
+  if (!content) return null;
+
+  return (
+    <div className={`prose-custom text-sm sm:text-base leading-relaxed ${className ?? ""}`}>
+      <Markdown remarkPlugins={[remarkGfm]} components={components}>
         {content}
       </Markdown>
     </div>
   );
-}
+});

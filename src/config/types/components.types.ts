@@ -70,3 +70,20 @@ export type MarkdownRendererProps = {
   className?: string;
 };
 
+export type HtmlPreviewViewport = "desktop" | "tablet" | "mobile";
+
+export type HtmlPreviewModalProps = {
+  srcDoc: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onOpenNewTab: () => void;
+  title?: string;
+};
+
+export type HtmlIframeProps = {
+  srcDoc: string;
+  className?: string;
+  title?: string;
+  refreshKey?: number;
+};
+

@@ -43,7 +43,7 @@ export function ImageAttachmentBar({
         {images.map((img) => (
           <div
             key={img.id}
-            className="group relative shrink-0 w-16 h-16 rounded-xl overflow-hidden border border-white/20 bg-black/40 shadow-sm"
+            className="group relative shrink-0 w-16 h-16 rounded-xl overflow-hidden shadow-sm"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -65,7 +65,7 @@ export function ImageAttachmentBar({
         ))}
 
         {isProcessing && (
-          <div className="shrink-0 w-16 h-16 rounded-xl border border-white/20 bg-white/5 flex flex-col items-center justify-center text-white/60 gap-1">
+          <div className="shrink-0 w-16 h-16 rounded-xl bg-white/5 flex flex-col items-center justify-center text-white/60 gap-1">
             <Loader2 size={16} className="animate-spin text-[#76a4ff]" />
             <span className="text-[10px]">Сжатие...</span>
           </div>

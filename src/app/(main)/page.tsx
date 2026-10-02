@@ -39,29 +39,6 @@ function TypingDots() {
   );
 }
 
-const QUICK_PROMPTS = [
-  {
-    title: "💻 Написать код",
-    desc: "React-компонент с анимацией и стеклянным эффектом",
-    prompt: "Напиши React-компонент с анимацией и стеклянным эффектом в стиле современных веб-приложений.",
-  },
-  {
-    title: "⚡ Оптимизация",
-    desc: "Как ускорить работу Next.js и снизить бандл",
-    prompt: "Как оптимизировать производительность и снизить размер бандла в Next.js 15?",
-  },
-  {
-    title: "🎨 UI/UX Стилизация",
-    desc: "Идеи палитры и темного стеклянного дизайна",
-    prompt: "Предложи современную цветовую палитру и стили для темного интерфейса в стиле Glassmorphism.",
-  },
-  {
-    title: "🚀 Архитектура",
-    desc: "Паттерны проектирования для Fullstack веб-сервиса",
-    prompt: "Расскажи, как правильно спроектировать архитектуру Fullstack-приложения на Next.js и FastAPI.",
-  },
-];
-
 export default function Home() {
   const { user } = useUser();
   const { model, setModel, isCurrentModelVision } = useModel();
@@ -307,7 +284,7 @@ export default function Home() {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
       }
     } catch (err: unknown) {
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => prev.filter((m) => m.content !== TYPING_PLACEHOLDER));
       const errorMessage = err instanceof Error ? err.message : "Не удалось отправить сообщение. Проверь API и попробуй снова.";
       setError(errorMessage);
     } finally {

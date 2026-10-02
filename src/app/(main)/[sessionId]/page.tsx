@@ -208,14 +208,13 @@ export default function Chat() {
 
         pollInterval = window.setInterval(async () => {
           pollCount += 1;
-          if (pollCount > 40) {
+          if (pollCount > 6) {
             if (pollInterval) clearInterval(pollInterval);
             if (isMounted) {
               setIsSending(false);
               setMessages((prev) =>
                 prev.filter((m) => m.content !== TYPING_PLACEHOLDER)
               );
-              setError("Превышено время ожидания ответа от модели.");
             }
             return;
           }
@@ -235,11 +234,18 @@ export default function Chat() {
               if (data.model_id) setModel(data.model_id);
             }
           } catch {
-            // Ignore polling errors while generating
+            if (pollInterval) clearInterval(pollInterval);
+            if (isMounted) {
+              setIsSending(false);
+              setMessages((prev) =>
+                prev.filter((m) => m.content !== TYPING_PLACEHOLDER)
+              );
+            }
           }
         }, 1500);
       } else {
         setMessages(history);
+        setIsSending(false);
       }
     };
 
@@ -357,7 +363,7 @@ export default function Chat() {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
       }
     } catch (err: unknown) {
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => prev.filter((m) => m.content !== TYPING_PLACEHOLDER));
       const errorMessage = err instanceof Error ? err.message : "Не удалось отправить сообщение. Проверь API и попробуй снова.";
       setError(errorMessage);
     } finally {
