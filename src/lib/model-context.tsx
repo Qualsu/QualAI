@@ -29,12 +29,10 @@ function getCategory(id: string, name?: string, givenCategory?: string | null): 
   if (givenCategory && typeof givenCategory === "string" && givenCategory.trim() !== "") {
     return givenCategory.trim();
   }
-  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
+  const cleanId = (id || "").toLowerCase().replace(/[-_\s.]/g, "");
   if (
-    cleanId === "qualai2" ||
-    cleanId === "qualai2code" ||
-    cleanId === "qualaicode2" ||
-    cleanId === "qualai15mini"
+    cleanId === "qai3" ||
+    cleanId === "qai3mini"
   ) {
     return "main";
   }
@@ -97,12 +95,12 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
 }
 
 export function ModelProvider({ children }: { children: React.ReactNode }) {
-  const [model, setModel] = useState<string>("QualAI-2");
+  const [model, setModel] = useState<string>("qai-3");
   const [models, setModels] = useState<ModelItem[]>(DEFAULT_MODELS);
 
   const getModelLabel = (modelId: string): string => {
     const found = models.find((m) => m.id === modelId || m.name === modelId);
-    return found ? found.name : modelId || "QualAI";
+    return found ? found.name : modelId || "Q.AI";
   };
 
   const isVisionSupported = (modelId?: string): boolean => {
@@ -126,11 +124,16 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
     }
 
     const storedModel = window.localStorage.getItem(MODEL_STORAGE_KEY);
-    if (storedModel && storedModel.startsWith("QualAI")) {
+    if (
+      storedModel &&
+      (storedModel.startsWith("QualAI") ||
+        storedModel.startsWith("qai-") ||
+        storedModel.startsWith("Q.AI"))
+    ) {
       setModel(storedModel);
     } else {
-      setModel("QualAI-2");
-      window.localStorage.setItem(MODEL_STORAGE_KEY, "QualAI-2");
+      setModel("qai-3");
+      window.localStorage.setItem(MODEL_STORAGE_KEY, "qai-3");
     }
   }, []);
 
@@ -150,7 +153,7 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
           if (prev && parsedModels.some((m) => m.id === prev)) {
             return prev;
           }
-          return data.default_model_id || "QualAI-2";
+          return data.default_model_id || "qai-3";
         });
       } catch {
         // Keep fallback options.
