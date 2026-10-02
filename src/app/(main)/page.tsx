@@ -14,6 +14,7 @@ import { APP_NAME, images, pages } from "@/config";
 import { processImageFile } from "@/lib/image-utils";
 import { ImageAttachmentBar } from "@/components/image-attachment-bar";
 import { ImageLightbox, MessageImages } from "@/components/chat-images";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const NEW_CHAT_EVENT = "new-chat";
@@ -399,7 +400,7 @@ export default function Home() {
                       <TypingDots />
                     ) : (
                       <>
-                        <div className="whitespace-pre-wrap wrap-break-word">{item.content}</div>
+                        <MarkdownRenderer content={item.content} />
                         <div className="mt-2 flex items-center gap-1 text-white/50">
                           <button
                             type="button"

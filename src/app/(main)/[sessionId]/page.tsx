@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { processImageFile } from "@/lib/image-utils";
 import { ImageAttachmentBar } from "@/components/image-attachment-bar";
 import { ImageLightbox, MessageImages } from "@/components/chat-images";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const TYPING_PLACEHOLDER = "__typing__";
@@ -446,7 +447,7 @@ export default function Chat() {
                       <TypingDots />
                     ) : (
                       <>
-                        <div className="whitespace-pre-wrap wrap-break-word">{item.content}</div>
+                        <MarkdownRenderer content={item.content} />
                         <div className="mt-2 flex items-center gap-1 text-white/50">
                           <button
                             type="button"

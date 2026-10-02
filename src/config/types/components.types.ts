@@ -57,3 +57,15 @@ export type ImageAttachmentBarProps = {
   isVisionSupported: boolean;
   onSwitchToVisionModel?: () => void;
 };
+
+export type CodeBlockProps = {
+  code: string;
+  language?: string;
+  className?: string;
+};
+
+export type MarkdownRendererProps = {
+  content: string;
+  className?: string;
+};
+
