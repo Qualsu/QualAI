@@ -2,9 +2,8 @@ const CACHE_NAME = "qual-ai-pwa-v1";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
-  "/icon.png",
+  "/favicon.png",
   "/logo.png",
-  "/mini-logo.svg",
 ];
 
 self.addEventListener("install", (event) => {

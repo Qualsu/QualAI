@@ -37,7 +37,7 @@ export default function AppShell({ children }: AppShellProps) {
         }`}
       >
         {/* Mobile top bar */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-[#161118]/95 backdrop-blur-2xl px-3 sm:px-4 py-2 border-b border-white/10 shadow-lg">
+        <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-[#17191c]/95 backdrop-blur-2xl px-3 sm:px-4 py-2 border-b border-white/10 shadow-lg">
           <div className="flex items-center gap-2.5">
             <button
               type="button"

@@ -385,7 +385,7 @@ export default function Chat() {
 
       {/* Drag & drop overlay */}
       {isDragging && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#161118]/85 backdrop-blur-md border-2 border-dashed border-purple-500/80 rounded-3xl m-4 pointer-events-none animate-in fade-in duration-150">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#17191c]/85 backdrop-blur-md border-2 border-dashed border-purple-500/80 rounded-3xl m-4 pointer-events-none animate-in fade-in duration-150">
           <div className="p-4 rounded-2xl bg-purple-500/20 text-purple-300 mb-3 shadow-[0_0_30px_rgba(168,85,247,0.4)]">
             <ImagePlus size={36} />
           </div>
@@ -397,7 +397,7 @@ export default function Chat() {
       <ImageLightbox src={activeLightboxImage} onClose={() => setActiveLightboxImage(null)} />
 
       {/* Top bar with Model Selector (hidden on mobile, shown in navbar on mobile) */}
-      <header className="hidden md:flex shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 items-center justify-between backdrop-blur-xl bg-[#161118]/80 z-20">
+      <header className="hidden md:flex shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 items-center justify-between backdrop-blur-xl bg-[#17191c]/80 z-20">
         <div className="flex items-center gap-3">
           <ModelSelector />
         </div>
@@ -453,7 +453,7 @@ export default function Chat() {
       {/* Floating Bottom Input Dock */}
       <footer className="shrink-0 px-4 sm:px-6 pb-6 pt-2 z-20">
         <div className="max-w-4xl mx-auto">
-          <div className="surface-panel rounded-2xl sm:rounded-3xl border-white/15 bg-[#191118]/85 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden transition-all focus-within:border-purple-400/50 focus-within:shadow-[0_20px_60px_rgba(168,85,247,0.15)]">
+          <div className="surface-panel rounded-2xl sm:rounded-3xl border-white/15 bg-[#1b1e22]/85 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden transition-all focus-within:border-purple-400/50 focus-within:shadow-[0_20px_60px_rgba(168,85,247,0.15)]">
             <ImageAttachmentBar
               images={attachedImages}
               onRemove={handleRemoveImage}

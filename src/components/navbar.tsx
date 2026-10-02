@@ -178,7 +178,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
     };
 
     return (
-        <nav className={`fixed left-0 top-0 h-full bg-[#191118]/85 backdrop-blur-2xl text-white flex flex-col gap-4 border-r border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-300 z-50 w-72 p-4 ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${isCollapsed ? "md:w-20 md:p-3" : "md:w-72 md:p-4"}`}>
+        <nav className={`fixed left-0 top-0 h-full bg-[#1b1e22]/85 backdrop-blur-2xl text-white flex flex-col gap-4 border-r border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-300 z-50 w-72 p-4 ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${isCollapsed ? "md:w-20 md:p-3" : "md:w-72 md:p-4"}`}>
             <div className={`flex items-center ${!showFull ? "justify-center" : "justify-between"}`}>
                 {showFull && (
                     <button
@@ -186,7 +186,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                         onClick={handleNewChat}
                         className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer text-left"
                     >
-                        <Image src={images.LOGO} width={140} height={32} alt={`${APP_NAME} logo`} className="object-contain drop-shadow-[0_4px_12px_rgba(168,85,247,0.25)]" />
+                        <Image src={images.LOGO} width={80} height={32} alt={`${APP_NAME} logo`} className="object-contain drop-shadow-[0_4px_12px_rgba(168,85,247,0.25)]" />
                     </button>
                 )}
                 {/* Desktop: collapse toggle */}
@@ -266,7 +266,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                                                 <Trash2 size={14} />
                                             </button>
                                         </AlertDialogTrigger>
-                                        <AlertDialogContent onClick={(e) => e.stopPropagation()} className="surface-panel rounded-2xl border-white/15 bg-[#1e131d]/95 backdrop-blur-2xl">
+                                        <AlertDialogContent onClick={(e) => e.stopPropagation()} className="surface-panel rounded-2xl border-white/15 bg-[#202328]/95 backdrop-blur-2xl">
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle className="text-xl font-bold text-white">Удалить чат?</AlertDialogTitle>
                                                 <AlertDialogDescription className="text-white/70">

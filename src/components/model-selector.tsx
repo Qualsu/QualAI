@@ -67,7 +67,7 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
         position="popper"
         sideOffset={4}
         align="start"
-        className="surface-panel bg-[#1e131d]/95 backdrop-blur-2xl border-white/15 text-white rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5 z-50 min-w-[220px]"
+        className="surface-panel bg-[#202328]/95 backdrop-blur-2xl border-white/15 text-white rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5 z-50 min-w-[220px]"
       >
         <SelectGroup>
           {mainModels.map((m) => {

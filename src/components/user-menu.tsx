@@ -40,7 +40,7 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
             <DropdownMenuContent
                 side="top"
                 align={isCollapsed ? "start" : "end"}
-                className="w-56 surface-panel border-white/15 bg-[#1e131d]/95 backdrop-blur-2xl rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5"
+                className="w-56 surface-panel border-white/15 bg-[#202328]/95 backdrop-blur-2xl rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5"
             >
                 <DropdownMenuItem
                     className="gap-2.5 cursor-pointer rounded-xl text-white/80 hover:text-white hover:bg-white/10 focus:bg-white/10 focus:text-white transition-colors"

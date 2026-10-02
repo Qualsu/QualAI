@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#130f14",
+  themeColor: "#111315",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -49,7 +49,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body
-        className={`${inter.className} ${inter.variable} antialiased bg-[#130f14] text-white selection:bg-purple-500/30 selection:text-white`}
+        className={`${inter.className} ${inter.variable} antialiased bg-[#111315] text-white selection:bg-purple-500/30 selection:text-white`}
       >
         <ThemeProvider
             attribute="class"
@@ -65,7 +65,7 @@ export default function RootLayout({
               baseTheme: dark,
               variables: {
                 colorPrimary: "#9333ea",
-                colorBackground: "#161118",
+                colorBackground: "#17191c",
                 colorText: "#ffffff",
                 colorTextSecondary: "rgba(255, 255, 255, 0.65)",
                 colorInputBackground: "rgba(255, 255, 255, 0.05)",
@@ -75,7 +75,7 @@ export default function RootLayout({
               },
               elements: {
                 modalBackdrop: "bg-black/75 backdrop-blur-md",
-                card: "surface-panel bg-[#161118]/95 border border-white/10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] rounded-3xl p-6 sm:p-8",
+                card: "surface-panel bg-[#17191c]/95 border border-white/10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] rounded-3xl p-6 sm:p-8",
                 headerTitle: "text-white font-bold text-xl",
                 headerSubtitle: "text-white/60 text-sm",
                 socialButtonsBlockButton: "surface-panel bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 text-white rounded-xl transition-all",
@@ -87,7 +87,7 @@ export default function RootLayout({
                 formButtonPrimary: "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.35)] hover:shadow-[0_0_30px_rgba(168,85,247,0.55)] transition-all transform hover:-translate-y-0.5",
                 footerActionLink: "text-purple-400 hover:text-purple-300 font-medium",
                 footer: "border-t border-white/10 bg-transparent",
-                userButtonPopoverCard: "surface-panel bg-[#161118]/95 border border-white/15 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] rounded-2xl",
+                userButtonPopoverCard: "surface-panel bg-[#17191c]/95 border border-white/15 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] rounded-2xl",
                 userPreviewMainIdentifier: "text-white font-medium",
                 userPreviewSecondaryIdentifier: "text-white/60 text-xs",
                 userButtonPopoverActionButton: "hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition-colors",
