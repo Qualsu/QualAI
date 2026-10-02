@@ -24,7 +24,7 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
                     aria-label="Меню аккаунта"
                 >
                     <div className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3"}`}>
-                        <div className="ring-2 ring-purple-500/30 rounded-full">
+                        <div className="ring-2 ring-[#76a4ff]/40 rounded-full">
                             <UserAvatar />
                         </div>
                         {!isCollapsed && (
@@ -39,8 +39,8 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
 
             <DropdownMenuContent
                 side="top"
-                align={isCollapsed ? "start" : "end"}
-                className="w-56 surface-panel border-white/15 bg-[#202328]/95 backdrop-blur-2xl rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5"
+                align="start"
+                className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-0 surface-panel border-white/15 bg-[#202328]/95 backdrop-blur-2xl rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5"
             >
                 <DropdownMenuItem
                     className="gap-2.5 cursor-pointer rounded-xl text-white/80 hover:text-white hover:bg-white/10 focus:bg-white/10 focus:text-white transition-colors"
@@ -48,7 +48,7 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
                         openUserProfile();
                     }}
                 >
-                    <Settings size={16} className="text-purple-300" />
+                    <Settings size={16} className="text-[#76a4ff]" />
                     <span>Настройки аккаунта</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem

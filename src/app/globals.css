@@ -186,15 +186,15 @@ body {
 }
 
 .cl-formButtonPrimary {
-  background: linear-gradient(to right, #9333ea, #6366f1) !important;
-  border: 1px solid rgba(192, 132, 252, 0.3) !important;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.35) !important;
+  background: linear-gradient(to right, #76a4ff, #4f83f7) !important;
+  border: 1px solid rgba(118, 164, 255, 0.4) !important;
+  box-shadow: 0 0 20px rgba(118, 164, 255, 0.35) !important;
   transition: all 0.2s ease !important;
 }
 
 .cl-formButtonPrimary:hover {
-  background: linear-gradient(to right, #a855f7, #818cf8) !important;
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.55) !important;
+  background: linear-gradient(to right, #8eb5ff, #6094ff) !important;
+  box-shadow: 0 0 30px rgba(118, 164, 255, 0.55) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -206,8 +206,8 @@ body {
 }
 
 .cl-formFieldInput:focus {
-  border-color: #a855f7 !important;
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25) !important;
+  border-color: #76a4ff !important;
+  box-shadow: 0 0 0 2px rgba(118, 164, 255, 0.25) !important;
 }
 
 .cl-socialButtonsBlockButton {
@@ -253,9 +253,9 @@ body {
   --foreground: #ffffff;
   --card: rgba(255, 255, 255, 0.05);
   --card-foreground: #ffffff;
-  --popover: rgba(26, 18, 26, 0.95);
+  --popover: rgba(23, 25, 28, 0.95);
   --popover-foreground: #ffffff;
-  --primary: #a855f7;
+  --primary: #76a4ff;
   --primary-foreground: #ffffff;
   --secondary: rgba(255, 255, 255, 0.08);
   --secondary-foreground: #ffffff;
@@ -266,21 +266,21 @@ body {
   --destructive: #ef4444;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.12);
-  --ring: #a855f7;
-  --chart-1: #a855f7;
+  --ring: #76a4ff;
+  --chart-1: #76a4ff;
   --chart-2: #38bdf8;
-  --chart-3: #818cf8;
-  --chart-4: #c084fc;
-  --chart-5: #f472b6;
+  --chart-3: #6094ff;
+  --chart-4: #9ec0ff;
+  --chart-5: #4f83f7;
   --radius: 0.75rem;
   --sidebar: rgba(27, 30, 34, 0.85);
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #a855f7;
+  --sidebar-primary: #76a4ff;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: rgba(255, 255, 255, 0.08);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #a855f7;
+  --sidebar-ring: #76a4ff;
 }
 
 .dark {
@@ -288,9 +288,9 @@ body {
   --foreground: #ffffff;
   --card: rgba(255, 255, 255, 0.05);
   --card-foreground: #ffffff;
-  --popover: rgba(26, 18, 26, 0.95);
+  --popover: rgba(23, 25, 28, 0.95);
   --popover-foreground: #ffffff;
-  --primary: #a855f7;
+  --primary: #76a4ff;
   --primary-foreground: #ffffff;
   --secondary: rgba(255, 255, 255, 0.08);
   --secondary-foreground: #ffffff;
@@ -301,20 +301,20 @@ body {
   --destructive: #ef4444;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.12);
-  --ring: #a855f7;
-  --chart-1: #a855f7;
+  --ring: #76a4ff;
+  --chart-1: #76a4ff;
   --chart-2: #38bdf8;
-  --chart-3: #818cf8;
-  --chart-4: #c084fc;
-  --chart-5: #f472b6;
+  --chart-3: #6094ff;
+  --chart-4: #9ec0ff;
+  --chart-5: #4f83f7;
   --sidebar: rgba(27, 30, 34, 0.85);
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #a855f7;
+  --sidebar-primary: #76a4ff;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: rgba(255, 255, 255, 0.08);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #a855f7;
+  --sidebar-ring: #76a4ff;
 }
 
 @layer base {

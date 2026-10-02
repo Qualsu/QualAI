@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useModel } from "@/lib/model-context";
 import { useUser } from "@clerk/nextjs";
-import { AlertCircle, ArrowRight, ImagePlus, Send } from "lucide-react";
+import { AlertCircle, ImagePlus, Send } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { APP_NAME, images, pages } from "@/config";
@@ -23,11 +23,11 @@ function TypingDots() {
   return (
     <div className="inline-flex items-center gap-1.5 py-1">
       <span
-        className="h-2.5 w-2.5 rounded-full bg-purple-400 animate-bounce shadow-[0_0_8px_rgba(192,132,252,0.8)]"
+        className="h-2.5 w-2.5 rounded-full bg-[#76a4ff] animate-bounce shadow-[0_0_8px_rgba(118,164,255,0.8)]"
         style={{ animationDelay: "0ms" }}
       />
       <span
-        className="h-2.5 w-2.5 rounded-full bg-indigo-400 animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.8)]"
+        className="h-2.5 w-2.5 rounded-full bg-[#5d91f8] animate-bounce shadow-[0_0_8px_rgba(93,145,248,0.8)]"
         style={{ animationDelay: "150ms" }}
       />
       <span
@@ -326,8 +326,8 @@ export default function Home() {
 
       {/* Drag & drop overlay */}
       {isDragging && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#17191c]/85 backdrop-blur-md border-2 border-dashed border-purple-500/80 rounded-3xl m-4 pointer-events-none animate-in fade-in duration-150">
-          <div className="p-4 rounded-2xl bg-purple-500/20 text-purple-300 mb-3 shadow-[0_0_30px_rgba(168,85,247,0.4)]">
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#17191c]/85 backdrop-blur-md border-2 border-dashed border-[#76a4ff]/80 rounded-3xl m-4 pointer-events-none animate-in fade-in duration-150">
+          <div className="p-4 rounded-2xl bg-[#76a4ff]/20 text-[#76a4ff] mb-3 shadow-[0_0_30px_rgba(118,164,255,0.4)]">
             <ImagePlus size={36} />
           </div>
           <p className="text-lg font-semibold text-white">Перетащите изображения сюда</p>
@@ -347,45 +347,21 @@ export default function Home() {
       {/* Main chat area */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         {messages.length === 0 ? (
-          <div className="h-full max-w-4xl mx-auto flex flex-col items-center justify-center py-8">
-            <div className="relative mb-6">
-              <div className="pointer-events-none absolute -inset-4 rounded-full bg-purple-600/20 blur-2xl animate-pulse" />
+          <div className="h-full max-w-4xl mx-auto flex items-center justify-center py-8 gap-3">
+            <div className="relative">
+            <div className="pointer-events-none absolute -inset-4 rounded-full bg-[#76a4ff]/20 blur-2xl animate-pulse" />
               <Image
                 src={images.MINI_LOGO}
-                width={80}
-                height={80}
+                width={35}
+                height={35}
                 alt={APP_NAME}
-                className="relative drop-shadow-[0_12px_30px_rgba(168,85,247,0.35)]"
+                className="relative drop-shadow-[0_12px_30px_rgba(118,164,255,0.35)]"
               />
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center tracking-tight leading-tight text-white mb-3">
+            <h1 className="text-4xl font-bold text-center tracking-tight leading-tight text-white">
               Кодим так, что Интернет плачет
             </h1>
-            <p className="text-sm sm:text-base text-white/70 text-center max-w-lg mb-8 sm:mb-12">
-              Qual AI — Искусственный интеллект от команды Qualsu для разработки, генерации кода, работы с изображениями и решения любых задач
-            </p>
-
-            {/* Quick prompt cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full max-w-3xl">
-              {QUICK_PROMPTS.map((item, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setMessage(item.prompt);
-                    void handleSend(item.prompt);
-                  }}
-                  className="surface-panel text-left p-4 rounded-2xl border-white/10 hover:border-white/25 bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.3)] group cursor-pointer"
-                >
-                  <div className="text-sm font-semibold text-white group-hover:text-purple-300 transition-colors flex items-center justify-between">
-                    <span>{item.title}</span>
-                    <ArrowRight size={16} className="text-white/40 group-hover:translate-x-0.5 transition-transform shrink-0" />
-                  </div>
-                  <div className="text-xs text-white/60 mt-1 line-clamp-2">{item.desc}</div>
-                </button>
-              ))}
-            </div>
           </div>
         ) : (
           <div className="max-w-4xl mx-auto flex flex-col gap-6">
@@ -394,12 +370,12 @@ export default function Home() {
                 key={`${item.role}-${index}`}
                 className={item.role === "user" ? "ml-auto max-w-[85%] sm:max-w-[75%]" : "mr-auto max-w-[90%] sm:max-w-[80%]"}
               >
-                <div className={`mb-1.5 text-xs flex items-center gap-1.5 ${item.role === "user" ? "justify-end text-purple-300/80" : "text-white/50"}`}>
+                <div className={`mb-1.5 text-xs flex items-center gap-1.5 ${item.role === "user" ? "justify-end text-[#76a4ff]/80" : "text-white/50"}`}>
                   {item.role === "user" ? (
                     <span>Вы</span>
                   ) : (
                     <>
-                      <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#76a4ff]" />
                       <span>{getModelLabel(item.model_id ?? model)}</span>
                     </>
                   )}
@@ -407,7 +383,7 @@ export default function Home() {
                 <div
                   className={`px-5 py-4 ${
                     item.role === "user"
-                      ? "bg-gradient-to-br from-purple-600/35 via-purple-700/25 to-indigo-600/35 border border-purple-400/30 text-white rounded-2xl rounded-tr-sm shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-lg"
+                      ? "bg-gradient-to-br from-[#76a4ff]/35 via-[#4f83f7]/25 to-[#3b82f6]/35 border border-[#76a4ff]/30 text-white rounded-2xl rounded-tr-sm shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-lg"
                       : "surface-panel border-white/10 bg-white/[0.04] text-white/95 rounded-2xl rounded-tl-sm shadow-[0_12px_40px_rgba(0,0,0,0.3)] backdrop-blur-2xl"
                   }`}
                 >
@@ -430,7 +406,7 @@ export default function Home() {
       {/* Floating Bottom Input Dock */}
       <footer className="shrink-0 px-4 sm:px-6 pb-6 pt-2 z-20">
         <div className="max-w-4xl mx-auto">
-          <div className="surface-panel rounded-2xl sm:rounded-3xl border-white/15 bg-[#1b1e22]/85 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden transition-all focus-within:border-purple-400/50 focus-within:shadow-[0_20px_60px_rgba(168,85,247,0.15)]">
+          <div className="surface-panel rounded-2xl sm:rounded-3xl border-white/15 bg-[#1b1e22]/85 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden transition-all focus-within:border-[#76a4ff]/50 focus-within:shadow-[0_20px_60px_rgba(118,164,255,0.15)]">
             <ImageAttachmentBar
               images={attachedImages}
               onRemove={handleRemoveImage}
@@ -477,7 +453,7 @@ export default function Home() {
                 onClick={() => handleSend()}
                 disabled={isSending || isProcessingImages || (!message.trim() && attachedImages.length === 0)}
                 size="icon"
-                className="rounded-xl sm:rounded-2xl h-10 w-10 sm:h-11 sm:w-11 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 border border-purple-400/40 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)] hover:shadow-[0_0_30px_rgba(168,85,247,0.55)] transition-all transform hover:-translate-y-0.5 disabled:opacity-30 disabled:hover:translate-y-0 shrink-0"
+                className="rounded-xl sm:rounded-2xl h-10 w-10 sm:h-11 sm:w-11 bg-gradient-to-r from-[#76a4ff] to-[#4f83f7] hover:from-[#8eb5ff] hover:to-[#6094ff] border border-[#76a4ff]/40 text-white shadow-[0_0_20px_rgba(118,164,255,0.35)] hover:shadow-[0_0_30px_rgba(118,164,255,0.55)] transition-all transform hover:-translate-y-0.5 disabled:opacity-30 disabled:hover:translate-y-0 shrink-0"
                 aria-label="Отправить"
               >
                 <Send size={18} />
@@ -492,7 +468,7 @@ export default function Home() {
             </div>
           )}
           <div className="mt-2.5 text-[11px] text-white/35 text-center">
-            {APP_NAME} • Кодим так, что Интернет плачет
+            Ответы Q.AI и QualAI могут быть не точными. Рекомендуем проверять информацию
           </div>
         </div>
       </footer>

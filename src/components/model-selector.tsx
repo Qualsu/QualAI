@@ -34,12 +34,12 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
   return (
     <Select value={model} onValueChange={setModel}>
       <SelectTrigger
-        className={`surface-panel w-auto min-w-[140px] max-w-[240px] sm:min-w-[200px] sm:max-w-none bg-white/[0.05] hover:bg-white/[0.09] border-white/15 text-white rounded-xl shadow-sm transition-all focus:ring-purple-500/40 text-xs sm:text-sm py-1 sm:py-2 px-2.5 sm:px-3 h-8 sm:h-10 ${
+        className={`surface-panel w-auto min-w-[140px] max-w-[240px] sm:min-w-[200px] sm:max-w-none bg-white/[0.05] hover:bg-white/[0.09] border-white/15 text-white rounded-xl shadow-sm transition-all focus:ring-[#76a4ff]/40 text-xs sm:text-sm py-1 sm:py-2 px-2.5 sm:px-3 h-8 sm:h-10 ${
           className ?? ""
         }`}
       >
         <div className="flex items-center gap-1.5 sm:gap-2 truncate w-full pr-1">
-          <span className="h-2 w-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)] shrink-0" />
+          <span className="h-2 w-2 rounded-full bg-[#76a4ff] shadow-[0_0_8px_rgba(118,164,255,0.8)] shrink-0" />
           <span className="truncate">{getModelLabel(model)}</span>
           {selectedModel?.vision && (
             <span

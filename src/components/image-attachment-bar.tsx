@@ -65,7 +65,7 @@ export function ImageAttachmentBar({
 
         {isProcessing && (
           <div className="shrink-0 w-16 h-16 rounded-xl border border-white/20 bg-white/5 flex flex-col items-center justify-center text-white/60 gap-1">
-            <Loader2 size={16} className="animate-spin text-purple-400" />
+            <Loader2 size={16} className="animate-spin text-[#76a4ff]" />
             <span className="text-[10px]">Сжатие...</span>
           </div>
         )}

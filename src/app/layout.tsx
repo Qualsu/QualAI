@@ -49,7 +49,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body
-        className={`${inter.className} ${inter.variable} antialiased bg-[#111315] text-white selection:bg-purple-500/30 selection:text-white`}
+        className={`${inter.className} ${inter.variable} antialiased bg-[#111315] text-white selection:bg-[#76a4ff]/30 selection:text-white`}
       >
         <ThemeProvider
             attribute="class"
@@ -64,7 +64,7 @@ export default function RootLayout({
             appearance={{
               baseTheme: dark,
               variables: {
-                colorPrimary: "#9333ea",
+                colorPrimary: "#76a4ff",
                 colorBackground: "#17191c",
                 colorText: "#ffffff",
                 colorTextSecondary: "rgba(255, 255, 255, 0.65)",
@@ -83,15 +83,15 @@ export default function RootLayout({
                 dividerLine: "bg-white/10",
                 dividerText: "text-white/40 text-xs",
                 formFieldLabel: "text-white/80 text-xs font-medium",
-                formFieldInput: "bg-white/[0.04] border border-white/15 text-white rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-all",
-                formButtonPrimary: "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.35)] hover:shadow-[0_0_30px_rgba(168,85,247,0.55)] transition-all transform hover:-translate-y-0.5",
-                footerActionLink: "text-purple-400 hover:text-purple-300 font-medium",
+                formFieldInput: "bg-white/[0.04] border border-white/15 text-white rounded-xl focus:border-[#76a4ff] focus:ring-1 focus:ring-[#76a4ff]/50 transition-all",
+                formButtonPrimary: "bg-gradient-to-r from-[#76a4ff] to-[#4f83f7] hover:from-[#8eb5ff] hover:to-[#6094ff] text-white font-medium rounded-xl shadow-[0_0_20px_rgba(118,164,255,0.35)] hover:shadow-[0_0_30px_rgba(118,164,255,0.55)] transition-all transform hover:-translate-y-0.5",
+                footerActionLink: "text-[#76a4ff] hover:text-[#9ec0ff] font-medium",
                 footer: "border-t border-white/10 bg-transparent",
                 userButtonPopoverCard: "surface-panel bg-[#17191c]/95 border border-white/15 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] rounded-2xl",
                 userPreviewMainIdentifier: "text-white font-medium",
                 userPreviewSecondaryIdentifier: "text-white/60 text-xs",
                 userButtonPopoverActionButton: "hover:bg-white/10 text-white/80 hover:text-white rounded-xl transition-colors",
-                userButtonPopoverActionButtonIcon: "text-purple-400",
+                userButtonPopoverActionButtonIcon: "text-[#76a4ff]",
                 userButtonPopoverFooter: "hidden",
               },
             }}

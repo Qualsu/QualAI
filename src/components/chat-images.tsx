@@ -68,7 +68,7 @@ export function MessageImages({ images, onImageClick }: MessageImagesProps) {
         <div
           key={idx}
           onClick={() => onImageClick?.(imgSrc)}
-          className="group relative overflow-hidden rounded-xl border border-white/15 bg-black/30 backdrop-blur-sm cursor-pointer transition-all hover:border-purple-400/50 hover:shadow-[0_8px_25px_rgba(168,85,247,0.2)]"
+          className="group relative overflow-hidden rounded-xl border border-white/15 bg-black/30 backdrop-blur-sm cursor-pointer transition-all hover:border-[#76a4ff]/50 hover:shadow-[0_8px_25px_rgba(118,164,255,0.2)]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

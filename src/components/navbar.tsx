@@ -186,7 +186,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                         onClick={handleNewChat}
                         className="flex items-center gap-2 group transition-opacity hover:opacity-90 cursor-pointer text-left"
                     >
-                        <Image src={images.LOGO} width={80} height={32} alt={`${APP_NAME} logo`} className="object-contain drop-shadow-[0_4px_12px_rgba(168,85,247,0.25)]" />
+                        <Image src={images.LOGO} width={80} height={32} alt={`${APP_NAME} logo`} className="object-contain drop-shadow-[0_4px_12px_rgba(118,164,255,0.25)]" />
                     </button>
                 )}
                 {/* Desktop: collapse toggle */}
@@ -215,7 +215,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                     className={`primary-button w-full shadow-[0_8px_20px_rgba(0,0,0,0.25)] ${!showFull ? "justify-center px-0 py-2.5" : "justify-start gap-2.5 px-4 py-2.5"}`}
                     onClick={handleNewChat}
                 >
-                    <Plus size={18} className="text-purple-300" />
+                    <Plus size={18} className="text-[#76a4ff]" />
                     {showFull && <span className="text-sm font-medium">Новый чат</span>}
                 </button>
             </div>
@@ -248,7 +248,7 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                                     onClick={() => { router.push(`/${session.sessionId}`); onMobileClose(); }}
                                     className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer group transition-all duration-200 border ${
                                         isActive
-                                            ? "bg-gradient-to-r from-purple-500/20 via-purple-600/15 to-transparent border-purple-400/30 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] font-medium"
+                                            ? "bg-gradient-to-r from-[#76a4ff]/20 via-[#76a4ff]/10 to-transparent border-[#76a4ff]/30 text-white shadow-[0_0_20px_rgba(118,164,255,0.15)] font-medium"
                                             : "text-white/70 hover:text-white border-transparent hover:bg-white/[0.06] hover:border-white/10"
                                     }`}
                                     title={session.preview}
