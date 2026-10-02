@@ -246,10 +246,10 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                                 <li
                                     key={session.sessionId}
                                     onClick={() => { router.push(`/${session.sessionId}`); onMobileClose(); }}
-                                    className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer group transition-all duration-200 border ${
+                                    className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer group transition-all duration-200 ${
                                         isActive
-                                            ? "bg-gradient-to-r from-[#76a4ff]/20 via-[#76a4ff]/10 to-transparent border-[#76a4ff]/30 text-white shadow-[0_0_20px_rgba(118,164,255,0.15)] font-medium"
-                                            : "text-white/70 hover:text-white border-transparent hover:bg-white/[0.06] hover:border-white/10"
+                                            ? "bg-white/[0.1] text-white font-medium"
+                                            : "text-white/70 hover:text-white hover:bg-white/[0.05]"
                                     }`}
                                     title={session.preview}
                                 >

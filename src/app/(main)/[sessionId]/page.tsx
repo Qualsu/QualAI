@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useModel } from "@/lib/model-context";
 import { useUser } from "@clerk/nextjs";
-import { AlertCircle, ImagePlus, Send } from "lucide-react";
+import { AlertCircle, ArrowUpIcon, Check, Copy, ImagePlus } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { processImageFile } from "@/lib/image-utils";
@@ -42,7 +42,7 @@ export default function Chat() {
   const params = useParams<{ sessionId: string }>();
   const sessionId = params?.sessionId;
 
-  const { model, setModel, getModelLabel, isCurrentModelVision } = useModel();
+  const { model, setModel, isCurrentModelVision } = useModel();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +53,19 @@ export default function Chat() {
   const [isProcessingImages, setIsProcessingImages] = useState(false);
   const [activeLightboxImage, setActiveLightboxImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const handleCopyMessage = async (content: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedIndex(index);
+      setTimeout(() => {
+        setCopiedIndex((prev) => (prev === index ? null : prev));
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy message:", err);
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef(model);
@@ -362,12 +375,12 @@ export default function Chat() {
     : sessionId
     ? `Чат ${typeof sessionId === 'string' ? sessionId.slice(0, 8) : sessionId}`
     : "Чат";
-  const pageTitle = `Q.AI | ${chatTitle}`;
+  const pageTitle = `${chatTitle} | Q.AI`;
 
   if (isLoading) {
     return (
       <>
-        <title>Q.AI | Загрузка...</title>
+        <title>Загрузка... | Q.AI</title>
         <ChatPageSkeleton />
       </>
     );
@@ -415,34 +428,47 @@ export default function Chat() {
             {messages.map((item, index) => (
               <div
                 key={`${item.role}-${index}`}
-                className={item.role === "user" ? "ml-auto max-w-[85%] sm:max-w-[75%]" : "mr-auto max-w-[90%] sm:max-w-[80%]"}
+                className={item.role === "user" ? "ml-auto max-w-[85%] sm:max-w-[75%]" : "mr-auto w-full max-w-3xl sm:max-w-4xl"}
               >
-                <div className={`mb-1.5 text-xs flex items-center gap-1.5 ${item.role === "user" ? "justify-end text-[#76a4ff]/80" : "text-white/50"}`}>
-                  {item.role === "user" ? (
-                    <span>Вы</span>
-                  ) : (
-                    <>
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#76a4ff]" />
-                      <span>{getModelLabel(item.model_id ?? model)}</span>
-                    </>
-                  )}
-                </div>
-                <div
-                  className={`px-5 py-4 ${
-                    item.role === "user"
-                      ? "bg-gradient-to-br from-[#76a4ff]/35 via-[#4f83f7]/25 to-[#3b82f6]/35 border border-[#76a4ff]/30 text-white rounded-2xl rounded-tr-sm shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-lg"
-                      : "surface-panel border-white/10 bg-white/[0.04] text-white/95 rounded-2xl rounded-tl-sm shadow-[0_12px_40px_rgba(0,0,0,0.3)] backdrop-blur-2xl"
-                  }`}
-                >
-                  {item.images && item.images.length > 0 && (
-                    <MessageImages images={item.images} onImageClick={setActiveLightboxImage} />
-                  )}
-                  {item.role === "assistant" && item.content === TYPING_PLACEHOLDER ? (
-                    <TypingDots />
-                  ) : (
-                    <div className="whitespace-pre-wrap wrap-break-word leading-relaxed">{item.content}</div>
-                  )}
-                </div>
+                {item.role === "user" ? (
+                  <div className="bg-[#1d3d75] text-white rounded-2xl sm:rounded-[22px] px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base leading-relaxed">
+                    {item.images && item.images.length > 0 && (
+                      <MessageImages images={item.images} onImageClick={setActiveLightboxImage} />
+                    )}
+                    <div className="whitespace-pre-wrap wrap-break-word">{item.content}</div>
+                  </div>
+                ) : (
+                  <div className="text-white/95 text-sm sm:text-base leading-relaxed">
+                    {item.images && item.images.length > 0 && (
+                      <MessageImages images={item.images} onImageClick={setActiveLightboxImage} />
+                    )}
+                    {item.content === TYPING_PLACEHOLDER ? (
+                      <TypingDots />
+                    ) : (
+                      <>
+                        <div className="whitespace-pre-wrap wrap-break-word">{item.content}</div>
+                        <div className="mt-2 flex items-center gap-1 text-white/50">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyMessage(item.content, index)}
+                            className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1.5 text-xs"
+                            title={copiedIndex === index ? "Скопировано!" : "Скопировать ответ"}
+                            aria-label="Скопировать ответ"
+                          >
+                            {copiedIndex === index ? (
+                              <>
+                                <Check size={16} className="text-[#76a4ff]" />
+                                <span className="text-xs text-[#76a4ff]">Скопировано</span>
+                              </>
+                            ) : (
+                              <Copy size={16} />
+                            )}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />
@@ -477,7 +503,7 @@ export default function Chat() {
                 disabled={isLoading || isSending || isProcessingImages}
                 size="icon"
                 variant="ghost"
-                className="rounded-xl sm:rounded-2xl h-10 w-10 sm:h-11 sm:w-11 text-white/70 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+                className="rounded-full h-10 w-10 sm:h-11 sm:w-11 text-white/70 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
                 title="Прикрепить изображение"
                 aria-label="Прикрепить изображение"
               >
@@ -500,10 +526,10 @@ export default function Chat() {
                 onClick={handleSend}
                 size="icon"
                 disabled={isLoading || isSending || isProcessingImages || !sessionId || (!message.trim() && attachedImages.length === 0)}
-                className="rounded-xl sm:rounded-2xl h-10 w-10 sm:h-11 sm:w-11 bg-gradient-to-r from-[#76a4ff] to-[#4f83f7] hover:from-[#8eb5ff] hover:to-[#6094ff] border border-[#76a4ff]/40 text-white shadow-[0_0_20px_rgba(118,164,255,0.35)] hover:shadow-[0_0_30px_rgba(118,164,255,0.55)] transition-all transform hover:-translate-y-0.5 disabled:opacity-30 disabled:hover:translate-y-0 shrink-0"
+                className="rounded-full h-10 w-10 sm:h-11 sm:w-11 bg-[#76a4ff] hover:bg-[#6094ff] text-white transition-colors disabled:opacity-30 shrink-0 cursor-pointer"
                 aria-label="Отправить"
               >
-                <Send size={18} />
+                <ArrowUpIcon className="size-6 stroke-[2.5]" />
               </Button>
             </div>
           </div>
