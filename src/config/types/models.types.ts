@@ -1,7 +1,6 @@
 export type ModelItem = {
   id: string;
   name: string;
-  badge?: string | null;
   category?: string | null;
   vision?: boolean;
 };

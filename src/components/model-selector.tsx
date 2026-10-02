@@ -1,35 +1,25 @@
 "use client";
 
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useModel } from "@/lib/model-context";
+import { cn } from "@/lib/utils";
 import type { ModelSelectorProps } from "@/config/types";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectSeparator,
   SelectTrigger,
 } from "@/components/ui/select";
 
-
-import { Eye } from "lucide-react";
-
 export default function ModelSelector({ className }: ModelSelectorProps) {
   const { model, setModel, models, getModelLabel } = useModel();
+  const [isOldExpanded, setIsOldExpanded] = useState(false);
 
   const mainModels = models.filter((m) => m.category !== "old");
   const oldModels = models.filter((m) => m.category === "old");
-
-  const selectedModel = models.find(
-    (m) =>
-      m.id.toLowerCase() === model.toLowerCase() ||
-      m.name.toLowerCase() === model.toLowerCase()
-  );
-  const isSelectedOrangeBadge =
-    Boolean(selectedModel?.badge) &&
-    (selectedModel!.badge!.toLowerCase().includes("fast") ||
-      selectedModel!.badge!.toLowerCase().includes("micro"));
 
   return (
     <Select value={model} onValueChange={setModel}>
@@ -41,26 +31,6 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
         <div className="flex items-center gap-1.5 sm:gap-2 truncate w-full pr-1">
           <span className="h-2 w-2 rounded-full bg-[#76a4ff] shadow-[0_0_8px_rgba(118,164,255,0.8)] shrink-0" />
           <span className="truncate">{getModelLabel(model)}</span>
-          {selectedModel?.vision && (
-            <span
-              className="px-1.5 py-0.5 text-[9px] font-bold border rounded-md uppercase tracking-wider shadow-xs shrink-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border-cyan-500/30 flex items-center gap-1"
-              title="Поддерживает изображения"
-            >
-              <Eye size={10} className="shrink-0" />
-              Vision
-            </span>
-          )}
-          {selectedModel?.badge && (
-            <span
-              className={`px-1.5 py-0.5 text-[9px] font-bold border rounded-md uppercase tracking-wider shadow-xs shrink-0 ${
-                isSelectedOrangeBadge
-                  ? "bg-gradient-to-r from-orange-500/20 to-amber-500/20 text-orange-400 border-orange-500/30"
-                  : "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30"
-              }`}
-            >
-              {selectedModel.badge}
-            </span>
-          )}
         </div>
       </SelectTrigger>
       <SelectContent
@@ -70,63 +40,69 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
         className="surface-panel bg-[#202328]/95 backdrop-blur-2xl border-white/15 text-white rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5 z-50 min-w-[220px]"
       >
         <SelectGroup>
-          {mainModels.map((m) => {
-            const isOrangeBadge =
-              m.badge &&
-              (m.badge.toLowerCase().includes("fast") ||
-                m.badge.toLowerCase().includes("micro"));
-            const badgeStyle = isOrangeBadge
-              ? "bg-gradient-to-r from-orange-500/20 to-amber-500/20 text-orange-400 border-orange-500/30"
-              : "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30";
-
-            return (
-              <SelectItem
-                key={m.id}
-                value={m.id}
-                className="rounded-xl hover:bg-white/10 focus:bg-white/10 cursor-pointer text-xs sm:text-sm my-0.5"
-              >
-                <div className="flex items-center justify-between gap-3 w-full pr-3">
-                  <span>{m.name}</span>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {m.vision && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-bold border rounded-md uppercase tracking-wider shadow-xs bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border-cyan-500/30 flex items-center gap-1">
-                        <Eye size={9} className="shrink-0" />
-                        Vision
-                      </span>
-                    )}
-                    {m.badge && (
-                      <span className={`px-1.5 py-0.5 text-[10px] font-bold border rounded-md uppercase tracking-wider shadow-xs shrink-0 ${badgeStyle}`}>
-                        {m.badge}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </SelectItem>
-            );
-          })}
+          {mainModels.map((m) => (
+            <SelectItem
+              key={m.id}
+              value={m.id}
+              className="rounded-xl hover:bg-white/10 focus:bg-white/10 cursor-pointer text-xs sm:text-sm my-0.5"
+            >
+              <span>{m.name}</span>
+            </SelectItem>
+          ))}
         </SelectGroup>
 
         {oldModels.length > 0 && (
           <>
             <SelectSeparator className="bg-white/10 my-1.5" />
-            <SelectGroup>
-              <SelectLabel className="px-2 py-1 text-[11px] font-bold text-white/40 uppercase tracking-wider">
-                Old
-              </SelectLabel>
-              {oldModels.map((m) => {
-                return (
+            <div className="px-1 py-0.5">
+              <button
+                type="button"
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsOldExpanded((prev) => !prev);
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsOldExpanded((prev) => !prev);
+                  }
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold text-white/50 hover:text-white/80 hover:bg-white/5 rounded-xl transition-colors cursor-pointer select-none"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="uppercase text-[10px] tracking-wider font-bold">Old</span>
+                  <span className="text-[10px] text-white/35 font-normal">({oldModels.length})</span>
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-3.5 text-white/40 transition-transform duration-200",
+                    isOldExpanded && "rotate-180"
+                  )}
+                />
+              </button>
+            </div>
+            {isOldExpanded && (
+              <SelectGroup className="mt-0.5">
+                {oldModels.map((m) => (
                   <SelectItem
                     key={m.id}
                     value={m.id}
                     className="rounded-xl hover:bg-white/10 focus:bg-white/10 cursor-pointer text-xs sm:text-sm my-0.5 text-white/70"
                   >
-                    <div className="flex items-center gap-2">
-                      <span>{m.name}</span>
-                    </div>
+                    <span>{m.name}</span>
                   </SelectItem>
-                );
-              })}
-            </SelectGroup>
+                ))}
+              </SelectGroup>
+            )}
           </>
         )}
       </SelectContent>

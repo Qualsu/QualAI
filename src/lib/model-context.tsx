@@ -9,34 +9,6 @@ import type { ModelContextType } from "@/config/types";
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
-function getBadge(id: string, name?: string, givenBadge?: string | null): string | null {
-  if (givenBadge && typeof givenBadge === "string" && givenBadge.trim() !== "") {
-    return givenBadge.trim();
-  }
-
-  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
-  const cleanName = (name || "").toLowerCase().replace(/[-_\s]/g, "");
-
-  if (cleanId.includes("micro") || cleanName.includes("micro")) {
-    return "Fast";
-  }
-
-  if (
-    cleanId === "qualai2" ||
-    cleanName === "qualai2"
-  ) {
-    return "Best";
-  }
-
-  const def = DEFAULT_MODELS.find((m) => {
-    const defId = m.id.toLowerCase().replace(/[-_\s]/g, "");
-    const defName = m.name.toLowerCase().replace(/[-_\s]/g, "");
-    return defId === cleanId || defName === cleanName || defId === cleanName || defName === cleanId;
-  });
-
-  return def?.badge || null;
-}
-
 function getVision(id: string, name?: string, givenVision?: boolean): boolean {
   if (typeof givenVision === "boolean") {
     return givenVision;
@@ -58,10 +30,15 @@ function getCategory(id: string, name?: string, givenCategory?: string | null): 
     return givenCategory.trim();
   }
   const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
-  if (cleanId === "qualai1" || cleanId === "qualai1mini" || cleanId === "qualai15micro") {
-    return "old";
+  if (
+    cleanId === "qualai2" ||
+    cleanId === "qualai2code" ||
+    cleanId === "qualaicode2" ||
+    cleanId === "qualai15mini"
+  ) {
+    return "main";
   }
-  return "main";
+  return "old";
 }
 
 function normalizeModels(dataModels: unknown): ModelItem[] {
@@ -75,7 +52,6 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
       return (dataModels as string[]).map((id) => ({
         id,
         name: id,
-        badge: getBadge(id, id, null),
         category: getCategory(id, id, null),
         vision: getVision(id, id),
       }));
@@ -85,7 +61,6 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
       .map((m) => ({
         ...m,
         name: m.name || m.id,
-        badge: getBadge(m.id, m.name, m.badge),
         category: getCategory(m.id, m.name, m.category),
         vision: getVision(m.id, m.name, m.vision),
       }));
@@ -98,7 +73,6 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
         items.push({
           id: key,
           name: val,
-          badge: getBadge(key, val, null),
           category: getCategory(key, val, null),
           vision: getVision(key, val),
         });
@@ -106,13 +80,11 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
         const itemObj = val as Record<string, unknown>;
         const id = (itemObj.id as string) || key;
         const name = (itemObj.name as string) || (itemObj.label as string) || id;
-        const givenBadge = (itemObj.badge as string) || null;
         const givenCategory = (itemObj.category as string) || null;
         const givenVision = typeof itemObj.vision === "boolean" ? itemObj.vision : undefined;
         items.push({
           id,
           name,
-          badge: getBadge(id, name, givenBadge),
           category: getCategory(id, name, givenCategory),
           vision: getVision(id, name, givenVision),
         });
