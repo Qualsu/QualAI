@@ -10,6 +10,7 @@ export function ImageAttachmentBar({
   disabled,
   isVisionSupported,
   onSwitchToVisionModel,
+  recommendedModelName = "Q.AI 3",
 }: ImageAttachmentBarProps) {
   if (images.length === 0 && !isProcessing) {
     return null;
@@ -31,7 +32,7 @@ export function ImageAttachmentBar({
               className="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 text-amber-100 font-medium text-[11px] border border-amber-500/40 transition-colors flex items-center gap-1 cursor-pointer"
             >
               <Sparkles size={12} className="shrink-0" />
-              <span>QualAI-2</span>
+              <span>{recommendedModelName}</span>
             </button>
           )}
         </div>

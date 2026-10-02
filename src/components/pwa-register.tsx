@@ -4,21 +4,22 @@ import { useEffect } from "react";
 
 export default function PWARegister() {
   useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      "serviceWorker" in navigator &&
-      window.location.protocol === "https:" ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1"
-    ) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("PWA Service Worker registered:", registration.scope);
-        })
-        .catch((error) => {
-          console.warn("PWA Service Worker registration failed:", error);
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      // Unregister any active service worker to prevent stale caching
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister();
+        }
+      });
+
+      // Clear all CacheStorage created by previous service workers
+      if ("caches" in window) {
+        caches.keys().then((names) => {
+          for (const name of names) {
+            caches.delete(name);
+          }
         });
+      }
     }
   }, []);
 

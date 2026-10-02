@@ -3,8 +3,8 @@ import { ModelItem } from "@/config/types";
 export const MODEL_STORAGE_KEY = "chat-model-id";
 
 export const DEFAULT_MODELS: ModelItem[] = [
-  { id: "qai-3", name: "Q.AI 3", category: "main" },
-  { id: "qai-3-mini", name: "Q.AI 3 mini", category: "main" },
+  { id: "qai-3", name: "Q.AI 3", category: "main", vision: true },
+  { id: "qai-3-mini", name: "Q.AI 3 mini", category: "main", vision: true },
   { id: "QualAI-2", name: "QualAI-2", category: "old", vision: true },
   { id: "QualAI-2-Code", name: "QualAI-2-Code", category: "old", vision: true },
   { id: "QualAI-1.5-mini", name: "QualAI-1.5-mini", category: "old" },

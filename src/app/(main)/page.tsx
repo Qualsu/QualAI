@@ -120,9 +120,9 @@ export default function Home() {
       setIsProcessingImages(true);
       setError(null);
 
-      // Auto switch to QualAI-2 if current model is not vision-capable
+      // Auto switch to Q.AI 3 if current model is not vision-capable
       if (!isCurrentModelVision) {
-        setModel("QualAI-2");
+        setModel("qai-3");
       }
 
       try {
@@ -254,8 +254,8 @@ export default function Home() {
 
     let activeModel = model;
     if (imagesToSend.length > 0 && !isCurrentModelVision) {
-      activeModel = "QualAI-2";
-      setModel("QualAI-2");
+      activeModel = "qai-3";
+      setModel("qai-3");
     }
 
     setMessages((prev) => [
@@ -440,7 +440,8 @@ export default function Home() {
               isProcessing={isProcessingImages}
               disabled={isSending}
               isVisionSupported={isCurrentModelVision}
-              onSwitchToVisionModel={() => setModel("QualAI-2")}
+              recommendedModelName="Q.AI 3"
+              onSwitchToVisionModel={() => setModel("qai-3")}
             />
             <div className="p-2 sm:p-2.5 flex items-center gap-2 sm:gap-3">
               <input

@@ -56,6 +56,7 @@ export type ImageAttachmentBarProps = {
   disabled?: boolean;
   isVisionSupported: boolean;
   onSwitchToVisionModel?: () => void;
+  recommendedModelName?: string;
 };
 
 export type CodeBlockProps = {

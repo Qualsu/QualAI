@@ -2,28 +2,41 @@
 
 import type { ImageLightboxProps, MessageImagesProps } from "@/config/types";
 import { Maximize2, X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export function ImageLightbox({ src, onClose }: ImageLightboxProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!src) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [src, onClose]);
 
-  if (!src) return null;
+  if (!src || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Просмотр изображения"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <button
@@ -45,7 +58,8 @@ export function ImageLightbox({ src, onClose }: ImageLightboxProps) {
           className="max-h-[85vh] max-w-full object-contain rounded-2xl shadow-2xl border border-white/10"
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

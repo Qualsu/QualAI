@@ -13,9 +13,13 @@ function getVision(id: string, name?: string, givenVision?: boolean): boolean {
   if (typeof givenVision === "boolean") {
     return givenVision;
   }
-  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
-  const cleanName = (name || "").toLowerCase().replace(/[-_\s]/g, "");
+  const cleanId = (id || "").toLowerCase().replace(/[-_\s.]/g, "");
+  const cleanName = (name || "").toLowerCase().replace(/[-_\s.]/g, "");
   return (
+    cleanId === "qai3" ||
+    cleanName === "qai3" ||
+    cleanId === "qai3mini" ||
+    cleanName === "qai3mini" ||
     cleanId === "qualai2" ||
     cleanName === "qualai2" ||
     cleanId === "qualai2code" ||
