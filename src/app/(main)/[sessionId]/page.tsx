@@ -46,7 +46,7 @@ export default function Chat() {
   const sessionId = params?.sessionId;
 
   const { model, setModel, isCurrentModelVision } = useModel();
-  const { checkLimit, recordUsage, rollbackUsage, getInfoForModel } = useLimits();
+  const { checkLimit, recordUsage, rollbackUsage, getInfoForModel, refreshLimits } = useLimits();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -378,6 +378,7 @@ export default function Chat() {
       );
 
       setModel(response.model_id);
+      void refreshLimits();
 
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));

@@ -44,7 +44,7 @@ function TypingDots() {
 export default function Home() {
   const { user } = useUser();
   const { model, setModel, isCurrentModelVision } = useModel();
-  const { checkLimit, recordUsage, rollbackUsage, getInfoForModel } = useLimits();
+  const { checkLimit, recordUsage, rollbackUsage, getInfoForModel, refreshLimits } = useLimits();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -300,6 +300,7 @@ export default function Home() {
       );
 
       setModel(response.model_id);
+      void refreshLimits();
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
       }
@@ -359,7 +360,7 @@ export default function Home() {
       {/* Main chat area */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         {messages.length === 0 ? (
-          <div className="h-full max-w-4xl mx-auto flex items-center justify-center py-8 gap-3">
+          <div className="h-full max-w-4xl mx-auto flex md:flex-row flex-col items-center justify-center py-8 gap-3">
             <div className="relative">
             <div className="pointer-events-none absolute -inset-4 rounded-full bg-[#76a4ff]/20 blur-2xl animate-pulse" />
               <Image

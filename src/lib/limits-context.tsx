@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useModel } from "@/lib/model-context";
+import { fetchServerLimits } from "@/app/api/chat";
 import {
   DAILY_LIMIT_MAIN,
   DAILY_LIMIT_OLD,
@@ -107,8 +108,26 @@ export function LimitsProvider({ children }: LimitsProviderProps) {
     setLimits(getStoredLimits(accountId));
   }, [accountId]);
 
+  const refreshLimits = useCallback(async () => {
+    try {
+      const data = await fetchServerLimits(accountId);
+      if (data?.daily) {
+        const serverData: DailyLimitsData = {
+          date: data.daily.date,
+          main: data.daily.main.used,
+          old: data.daily.old.used,
+        };
+        saveStoredLimits(accountId, serverData);
+        setLimits(serverData);
+      }
+    } catch {
+      // Keep cached state if server is momentarily unreachable
+    }
+  }, [accountId]);
+
   useEffect(() => {
     syncFromStorage();
+    void refreshLimits();
 
     const handleCustomUpdate = () => {
       syncFromStorage();
@@ -120,8 +139,13 @@ export function LimitsProvider({ children }: LimitsProviderProps) {
       }
     };
 
+    const handleFocus = () => {
+      void refreshLimits();
+    };
+
     window.addEventListener(DAILY_LIMITS_UPDATED_EVENT, handleCustomUpdate);
     window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("focus", handleFocus);
 
     const now = new Date();
     const nextMidnight = new Date(
@@ -134,17 +158,17 @@ export function LimitsProvider({ children }: LimitsProviderProps) {
     );
     const msUntilMidnight = Math.max(1000, nextMidnight.getTime() - now.getTime());
     const timeoutId = window.setTimeout(() => {
-      const fresh: DailyLimitsData = { date: getTodayDateString(), main: 0, old: 0 };
-      saveStoredLimits(accountId, fresh);
-      setLimits(fresh);
+      void refreshLimits();
     }, msUntilMidnight);
 
     return () => {
       window.removeEventListener(DAILY_LIMITS_UPDATED_EVENT, handleCustomUpdate);
       window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("focus", handleFocus);
       window.clearTimeout(timeoutId);
     };
-  }, [accountId, syncFromStorage]);
+  }, [accountId, syncFromStorage, refreshLimits]);
+
 
   const getGroupForModel = useCallback(
     (modelId: string, category?: string | null): ModelLimitGroup => {
@@ -277,6 +301,7 @@ export function LimitsProvider({ children }: LimitsProviderProps) {
         rollbackUsage,
         getGroupForModel,
         getInfoForModel,
+        refreshLimits,
       }}
     >
       {children}
