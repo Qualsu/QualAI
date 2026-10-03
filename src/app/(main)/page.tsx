@@ -6,6 +6,7 @@ import ModelSelector from "@/components/model-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useModel } from "@/lib/model-context";
+import { useLimits } from "@/lib/limits-context";
 import { useUser } from "@clerk/nextjs";
 import { AlertCircle, ArrowUpIcon, Check, Copy, ImagePlus } from "lucide-react";
 import Image from "next/image";
@@ -15,6 +16,7 @@ import { processImageFile } from "@/lib/image-utils";
 import { ImageAttachmentBar } from "@/components/image-attachment-bar";
 import { ImageLightbox, MessageImages } from "@/components/chat-images";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { sanitizeChatError } from "@/lib/utils";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const NEW_CHAT_EVENT = "new-chat";
@@ -42,6 +44,7 @@ function TypingDots() {
 export default function Home() {
   const { user } = useUser();
   const { model, setModel, isCurrentModelVision } = useModel();
+  const { checkLimit, recordUsage, rollbackUsage, getInfoForModel } = useLimits();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -224,16 +227,33 @@ export default function Home() {
     const currentImages = [...attachedImages];
     const imagesToSend = currentImages.map((img) => img.url);
 
-    setIsSending(true);
-    setError(null);
-    setMessage("");
-    setAttachedImages([]);
-
     let activeModel = model;
     if (imagesToSend.length > 0 && !isCurrentModelVision) {
       activeModel = "qai-3";
       setModel("qai-3");
     }
+
+    const limitCheck = checkLimit(activeModel);
+    if (!limitCheck.allowed) {
+      const otherGroup = limitCheck.group === "main" ? "старые модели QualAI" : "Q.AI 3 и 3 Mini";
+      setError(
+        `Дневной лимит для ${limitCheck.groupTitle} исчерпан (${limitCheck.limit} из ${limitCheck.limit}). Вы можете переключиться на ${otherGroup} или подождать сброса в 00:00.`
+      );
+      return;
+    }
+
+    const recorded = recordUsage(activeModel);
+    if (!recorded) {
+      setError(
+        `Дневной лимит для ${limitCheck.groupTitle} исчерпан (${limitCheck.limit} из ${limitCheck.limit}).`
+      );
+      return;
+    }
+
+    setIsSending(true);
+    setError(null);
+    setMessage("");
+    setAttachedImages([]);
 
     setMessages((prev) => [
       ...prev,
@@ -284,8 +304,9 @@ export default function Home() {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
       }
     } catch (err: unknown) {
+      rollbackUsage(activeModel);
       setMessages((prev) => prev.filter((m) => m.content !== TYPING_PLACEHOLDER));
-      const errorMessage = err instanceof Error ? err.message : "Не удалось отправить сообщение. Проверь API и попробуй снова.";
+      const errorMessage = sanitizeChatError(err);
       setError(errorMessage);
     } finally {
       setIsSending(false);
@@ -447,7 +468,9 @@ export default function Home() {
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder={
-                  attachedImages.length > 0
+                  getInfoForModel(model).isExceeded
+                    ? `Дневной лимит для ${getInfoForModel(model).shortTitle} исчерпан (${getInfoForModel(model).limit}/${getInfoForModel(model).limit})...`
+                    : attachedImages.length > 0
                     ? "Добавь описание или нажми Enter для отправки..."
                     : "Спроси о чём угодно или попроси написать код..."
                 }
@@ -456,7 +479,12 @@ export default function Home() {
               />
               <Button
                 onClick={() => handleSend()}
-                disabled={isSending || isProcessingImages || (!message.trim() && attachedImages.length === 0)}
+                disabled={
+                  isSending ||
+                  isProcessingImages ||
+                  (!message.trim() && attachedImages.length === 0) ||
+                  getInfoForModel(model).isExceeded
+                }
                 size="icon"
                 className="rounded-full h-10 w-10 sm:h-11 sm:w-11 bg-[#76a4ff] hover:bg-[#6094ff] text-white transition-colors disabled:opacity-30 shrink-0 cursor-pointer"
                 aria-label="Отправить"
@@ -465,6 +493,15 @@ export default function Home() {
               </Button>
             </div>
           </div>
+
+          {getInfoForModel(model).isExceeded && !error && (
+            <div className="mt-3 flex items-center justify-center gap-2 text-xs sm:text-sm text-amber-300 bg-amber-500/10 border border-amber-500/25 px-3.5 py-2 rounded-xl backdrop-blur-md">
+              <AlertCircle size={15} className="shrink-0 text-amber-400" />
+              <span>
+                Дневной лимит для {getInfoForModel(model).shortTitle} исчерпан ({getInfoForModel(model).limit}/{getInfoForModel(model).limit}). Выберите другую модель в меню сверху.
+              </span>
+            </div>
+          )}
 
           {error && (
             <div className="mt-3 flex items-center justify-center gap-2 text-xs sm:text-sm text-red-300 bg-red-500/15 border border-red-500/30 px-3.5 py-2 rounded-xl backdrop-blur-md">

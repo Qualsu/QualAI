@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useModel } from "@/lib/model-context";
+import { useLimits } from "@/lib/limits-context";
 import { cn } from "@/lib/utils";
 import type { ModelSelectorProps } from "@/config/types";
 import {
@@ -16,6 +17,7 @@ import {
 
 export default function ModelSelector({ className }: ModelSelectorProps) {
   const { model, setModel, models, getModelLabel } = useModel();
+  const { mainInfo, oldInfo } = useLimits();
   const [isOldExpanded, setIsOldExpanded] = useState(false);
 
   const mainModels = models.filter((m) => m.category !== "old");
@@ -40,6 +42,12 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
         className="surface-panel bg-[#202328]/95 backdrop-blur-2xl border-white/15 text-white rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-1.5 z-50 min-w-[220px]"
       >
         <SelectGroup>
+          <div className="px-2.5 py-1 flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold text-white/40">
+            <span>Основные</span>
+            <span className={mainInfo.isExceeded ? "text-red-400 font-bold" : "text-[#76a4ff]"}>
+              {mainInfo.remaining}/{mainInfo.limit}
+            </span>
+          </div>
           {mainModels.map((m) => (
             <SelectItem
               key={m.id}
@@ -82,12 +90,17 @@ export default function ModelSelector({ className }: ModelSelectorProps) {
                   <span className="uppercase text-[10px] tracking-wider font-bold">Old</span>
                   <span className="text-[10px] text-white/35 font-normal">({oldModels.length})</span>
                 </span>
-                <ChevronDown
-                  className={cn(
-                    "size-3.5 text-white/40 transition-transform duration-200",
-                    isOldExpanded && "rotate-180"
-                  )}
-                />
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-[10px] ${oldInfo.isExceeded ? "text-red-400 font-bold" : "text-white/40"}`}>
+                    {oldInfo.remaining}/{oldInfo.limit}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "size-3.5 text-white/40 transition-transform duration-200",
+                      isOldExpanded && "rotate-180"
+                    )}
+                  />
+                </div>
               </button>
             </div>
             {isOldExpanded && (

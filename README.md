@@ -1,6 +1,6 @@
-<img src="public/logo.png" width="300px">
+<img src="public/logo.png" width="200px">
 
-# Qual AI
+# Q.AI
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=next.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-20232A?style=flat-square&logo=react&logoColor=61DAFB)

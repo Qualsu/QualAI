@@ -1,5 +1,6 @@
 import AppShell from "@/components/app-shell";
 import { ModelProvider } from "@/lib/model-context";
+import { LimitsProvider } from "@/lib/limits-context";
 
 export default function RootLayout({
   children,
@@ -8,7 +9,9 @@ export default function RootLayout({
 }>) {
   return (
     <ModelProvider>
-      <AppShell>{children}</AppShell>
+      <LimitsProvider>
+        <AppShell>{children}</AppShell>
+      </LimitsProvider>
     </ModelProvider>
   );
 }
