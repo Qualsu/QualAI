@@ -3,12 +3,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function ChatPageSkeleton() {
   return (
     <div className="flex h-full min-h-0 flex-col text-white">
-      {/* Top bar skeleton matching real desktop header */}
       <header className="hidden md:flex shrink-0 border-b border-white/10 px-4 sm:px-6 py-3 items-center backdrop-blur-xl bg-[#17191c]/80 z-20">
         <Skeleton className="h-8 sm:h-10 w-44 sm:w-52 rounded-xl bg-white/[0.06] border border-white/10" />
       </header>
 
-      {/* Main message stream skeleton */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
           <div className="mr-auto w-full max-w-3xl sm:max-w-4xl space-y-2.5">
@@ -28,7 +26,6 @@ export default function ChatPageSkeleton() {
         </div>
       </div>
 
-      {/* Floating Bottom Input Dock skeleton */}
       <footer className="shrink-0 px-4 sm:px-6 pb-6 pt-2 z-20">
         <div className="max-w-4xl mx-auto">
           <div className="surface-panel rounded-2xl sm:rounded-3xl border-white/15 bg-[#1b1e22]/85 backdrop-blur-2xl p-2 sm:p-2.5 flex items-center gap-2 sm:gap-3">

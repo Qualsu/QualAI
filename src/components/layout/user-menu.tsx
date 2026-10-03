@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
   const { user } = useUser();
@@ -49,7 +49,6 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
         sideOffset={8}
         className="w-72 sm:w-80 min-w-[280px] surface-panel border-white/15 bg-[#202328]/95 backdrop-blur-2xl rounded-2xl shadow-[0_16px_50px_rgba(0,0,0,0.5)] p-2 z-50"
       >
-        {/* User Identity Header */}
         <div className="px-2.5 py-2 flex items-center gap-3">
           <div className="ring-2 ring-[#76a4ff]/40 rounded-full shrink-0">
             <UserAvatar />
@@ -66,7 +65,6 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
 
         <DropdownMenuSeparator className="bg-white/10 my-1.5" />
 
-        {/* Daily Limits Section */}
         <div className="px-2.5 py-2">
           <div className="flex items-center justify-between text-xs font-semibold text-white/80 mb-2.5">
             <span className="flex items-center gap-1.5 text-white/90">
@@ -80,7 +78,6 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
           </div>
 
           <div className="space-y-2">
-            {/* Q.AI 3 & 3 Mini */}
             <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 transition-colors">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <span className="font-medium text-white truncate pr-1">Q.AI 3 и 3 Mini</span>
@@ -108,7 +105,6 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
               </div>
             </div>
 
-            {/* Old QualAI Models */}
             <div className="bg-white/[0.04] border border-white/10 rounded-xl p-2.5 transition-colors">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <span className="font-medium text-white/90 truncate pr-1">Старые модели QualAI</span>
@@ -140,7 +136,6 @@ export default function UserMenu({ isCollapsed = false }: UserMenuProps) {
 
         <DropdownMenuSeparator className="bg-white/10 my-1.5" />
 
-        {/* Actions */}
         <DropdownMenuItem
           className="gap-2.5 cursor-pointer rounded-xl text-white/80 hover:text-white hover:bg-white/10 focus:bg-white/10 focus:text-white transition-colors"
           onSelect={() => {

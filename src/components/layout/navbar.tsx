@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { clearChatSession, fetchAllHistory } from "@/app/api/chat";
 import type { ChatMessage } from "@/config/types";
@@ -7,7 +7,7 @@ import { ChevronFirstIcon, ChevronLastIcon, Plus, Trash2, X } from "lucide-react
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import UserMenu from "./user-menu";
+import UserMenu from "@/components/layout/user-menu";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -18,14 +18,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "./ui/alert-dialog";
-import { Skeleton } from "./ui/skeleton";
+} from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { APP_NAME, images, pages } from "@/config";
 import type { NavbarProps, SessionItem } from "@/config/types";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
 const NEW_CHAT_EVENT = "new-chat";
-
 
 function buildSessionPreview(
     sessionId: string,
@@ -167,7 +166,6 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                 handleNewChat();
             }
         } catch {
-            // silently fail
         } finally {
             setDeletingIds((prev) => {
                 const next = new Set(prev);
@@ -189,7 +187,6 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                         <Image src={images.LOGO} width={80} height={32} alt={`${APP_NAME} logo`} className="object-contain drop-shadow-[0_4px_12px_rgba(118,164,255,0.25)]" />
                     </button>
                 )}
-                {/* Desktop: collapse toggle */}
                 <button
                     type="button"
                     onClick={onToggle}
@@ -198,7 +195,6 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
                 >
                     {isCollapsed ? <ChevronLastIcon size={18} /> : <ChevronFirstIcon size={18} />}
                 </button>
-                {/* Mobile: close button */}
                 <button
                     type="button"
                     onClick={onMobileClose}
@@ -228,74 +224,82 @@ export default function Navbar({ isCollapsed, onToggle, isMobileOpen, onMobileCl
 
                     <ul className="flex-1 overflow-y-auto overflow-x-hidden space-y-1 pr-1">
                         {isLoading && sessions.length === 0 ? (
-                            <li className="space-y-2 p-1">
-                                <Skeleton className="h-9 w-full rounded-xl bg-white/5" />
-                                <Skeleton className="h-9 w-4/5 rounded-xl bg-white/5" />
-                                <Skeleton className="h-9 w-full rounded-xl bg-white/5" />
-                            </li>
-                        ) : sessions.length === 0 ? (
-                            <li className="p-3 text-sm text-white/40 text-center rounded-xl bg-white/[0.02] border border-white/5 my-2">
-                                Чатов пока нет
-                            </li>
-                        ) : null}
-
-                        {sessions.map((session) => {
-                            const isActive = session.sessionId === activeSessionId;
-
-                            return (
-                                <li
-                                    key={session.sessionId}
-                                    onClick={() => { router.push(`/${session.sessionId}`); onMobileClose(); }}
-                                    className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer group transition-all duration-200 ${
-                                        isActive
-                                            ? "bg-white/[0.1] text-white font-medium"
-                                            : "text-white/70 hover:text-white hover:bg-white/[0.05]"
-                                    }`}
-                                    title={session.preview}
-                                >
-                                    <span className="truncate flex-1 min-w-0 text-sm">{session.preview}</span>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => e.stopPropagation()}
-                                                disabled={deletingIds.has(session.sessionId)}
-                                                className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-white/40 hover:text-red-400 transition-all p-1 rounded-lg hover:bg-red-500/10 disabled:opacity-50"
-                                                aria-label="Удалить чат"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent onClick={(e) => e.stopPropagation()} className="surface-panel rounded-2xl border-white/15 bg-[#202328]/95 backdrop-blur-2xl">
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle className="text-xl font-bold text-white">Удалить чат?</AlertDialogTitle>
-                                                <AlertDialogDescription className="text-white/70">
-                                                    Это действие нельзя отменить. Чат будет удалён без возможности восстановления.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter className="mt-4 gap-2">
-                                                <AlertDialogCancel className="primary-button border-white/15 bg-white/[0.05] hover:bg-white/10 text-white rounded-xl">
-                                                    Отмена
-                                                </AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    className="rounded-xl bg-red-600/80 hover:bg-red-600 text-white border border-red-500/30 transition-all shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-                                                    disabled={deletingIds.has(session.sessionId)}
-                                                    onClick={() => handleDeleteSession(session.sessionId)}
-                                                >
-                                                    Удалить
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <li key={i} className="px-2 py-2">
+                                    <Skeleton className="h-7 w-full bg-white/5 rounded-lg" />
                                 </li>
-                            );
-                        })}
+                            ))
+                        ) : sessions.length === 0 ? (
+                            <li className="px-3 py-6 text-center text-xs text-white/40">
+                                У вас пока нет сохранённых чатов
+                            </li>
+                        ) : (
+                            sessions.map((item) => {
+                                const isActive = activeSessionId === item.sessionId;
+                                const isDeleting = deletingIds.has(item.sessionId);
+
+                                return (
+                                    <li key={item.sessionId} className="relative group">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                router.push(`/${item.sessionId}`);
+                                                onMobileClose();
+                                            }}
+                                            className={`w-full text-left px-3 py-2 rounded-xl text-xs sm:text-sm transition-all duration-200 flex items-center justify-between pr-8 border ${
+                                                isActive
+                                                    ? "bg-[#252a30] text-white border-white/15 font-medium shadow-sm"
+                                                    : "text-white/70 hover:text-white hover:bg-white/[0.06] border-transparent"
+                                            }`}
+                                        >
+                                            <span className="truncate">{item.preview}</span>
+                                        </button>
+
+                                        <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <button
+                                                        type="button"
+                                                        disabled={isDeleting}
+                                                        className="p-1.5 text-white/40 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                                                        aria-label="Удалить чат"
+                                                    >
+                                                        <Trash2 size={13} />
+                                                    </button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent className="surface-panel border-white/15 bg-[#1b1e22]/95 backdrop-blur-2xl">
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle className="text-white">
+                                                            Удалить этот чат?
+                                                        </AlertDialogTitle>
+                                                        <AlertDialogDescription className="text-white/60">
+                                                            История этого диалога будет удалена навсегда без возможности восстановления.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white">
+                                                            Отмена
+                                                        </AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            onClick={() => handleDeleteSession(item.sessionId)}
+                                                            className="bg-red-500/80 hover:bg-red-500 text-white border-0"
+                                                        >
+                                                            Удалить
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
+                                    </li>
+                                );
+                            })
+                        )}
                     </ul>
                 </div>
             )}
 
-            <div className={`mt-auto border-t border-white/10 pt-3`}>
-                <UserMenu isCollapsed={isCollapsed} />
+            <div className={`mt-auto ${showFull ? "pt-2 border-t border-white/10" : ""}`}>
+                <UserMenu isCollapsed={!showFull} />
             </div>
         </nav>
     );

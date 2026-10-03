@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
-import { ThemeProvider } from "@/components/theme-provider";
-import PWARegister from "@/components/pwa-register";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import PWARegister from "@/components/providers/pwa-register";
 import { APP_NAME } from "@/config";
 import { images, pages } from "@/config";
 

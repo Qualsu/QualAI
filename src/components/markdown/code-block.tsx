@@ -1,8 +1,8 @@
 "use client";
 
 import type { CodeBlockProps } from "@/config/types";
-import { HtmlIframe } from "@/components/html-iframe";
-import { HtmlPreviewModal } from "@/components/html-preview-modal";
+import { HtmlIframe } from "@/components/markdown/html-iframe";
+import { HtmlPreviewModal } from "@/components/markdown/html-preview-modal";
 import hljs from "highlight.js";
 import { Check, Code, Copy, ExternalLink, Globe, Maximize2, Monitor, RotateCw, Smartphone } from "lucide-react";
 import React, { useMemo, useState } from "react";
@@ -38,16 +38,17 @@ const LANGUAGE_LABELS: Record<string, string> = {
   cs: "C#",
   csharp: "C#",
   java: "Java",
-  kotlin: "Kotlin",
-  kt: "Kotlin",
-  swift: "Swift",
   php: "PHP",
-  ruby: "Ruby",
   rb: "Ruby",
+  ruby: "Ruby",
+  swift: "Swift",
+  kotlin: "Kotlin",
+  dart: "Dart",
   dockerfile: "Dockerfile",
   docker: "Dockerfile",
-  graphql: "GraphQL",
   xml: "XML",
+  svg: "SVG",
+  graphql: "GraphQL",
 };
 
 export const CodeBlock = React.memo(function CodeBlock({
@@ -56,25 +57,23 @@ export const CodeBlock = React.memo(function CodeBlock({
   className,
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
   const [userTab, setUserTab] = useState<"code" | "preview" | null>(null);
   const [inlineViewport, setInlineViewport] = useState<"desktop" | "mobile">("desktop");
-  const [iframeKey, setIframeKey] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const cleanLang = (language || "").trim().toLowerCase();
 
   const isHtml = useMemo(() => {
     if (cleanLang === "html" || cleanLang === "htm") return true;
-    if (!cleanLang || cleanLang === "xml") {
-      const trimmed = (code || "").trim().toLowerCase();
-      return (
-        trimmed.startsWith("<!doctype html") ||
-        trimmed.startsWith("<html") ||
-        (trimmed.includes("<body") && trimmed.includes("</body>")) ||
-        (trimmed.includes("<html") && trimmed.includes("</html>"))
-      );
-    }
-    return false;
+    if (!code) return false;
+    const trimmed = code.trim();
+    return (
+      trimmed.startsWith("<!DOCTYPE html") ||
+      trimmed.startsWith("<html") ||
+      (trimmed.includes("<head") && trimmed.includes("<body")) ||
+      (trimmed.includes("<div") && trimmed.includes("</div>") && trimmed.includes("class="))
+    );
   }, [cleanLang, code]);
 
   const isCompleteHtml = useMemo(() => {
@@ -86,7 +85,6 @@ export const CodeBlock = React.memo(function CodeBlock({
   const currentTab = useMemo(() => {
     if (!isHtml) return "code";
     if (userTab !== null) return userTab;
-    // Default to preview when full HTML document is present
     if (isCompleteHtml) return "preview";
     return "code";
   }, [isHtml, userTab, isCompleteHtml]);
@@ -108,7 +106,6 @@ export const CodeBlock = React.memo(function CodeBlock({
           ignoreIllegals: true,
         }).value;
       } catch {
-        // Fallback to auto
       }
     }
 
@@ -231,9 +228,7 @@ export const CodeBlock = React.memo(function CodeBlock({
           className ?? ""
         }`}
       >
-        {/* Header Toolbar */}
         <div className="flex items-center justify-between border-b border-white/10 bg-[#191c20]/90 px-3 py-1.5 backdrop-blur-sm select-none">
-          {/* Left Side: Tabs if HTML, else language name */}
           {isHtml ? (
             <div className="flex items-center gap-1.5">
               <div className="flex items-center p-0.5 rounded-lg bg-white/5 border border-white/10">
@@ -272,11 +267,9 @@ export const CodeBlock = React.memo(function CodeBlock({
             </span>
           )}
 
-          {/* Right Side: Actions */}
           <div className="flex items-center gap-1 text-xs">
             {isHtml && currentTab === "preview" && (
               <>
-                {/* Viewport switch: Desktop / Mobile */}
                 <div className="flex items-center rounded-lg bg-white/5 border border-white/10 p-0.5">
                   <button
                     type="button"
@@ -364,7 +357,6 @@ export const CodeBlock = React.memo(function CodeBlock({
           </div>
         </div>
 
-        {/* Content Body */}
         {isHtml && currentTab === "preview" ? (
           <div className="relative w-full h-[460px] sm:h-[520px] bg-[#0c0e12] flex items-center justify-center p-2 sm:p-3 overflow-hidden">
             <div
@@ -397,7 +389,6 @@ export const CodeBlock = React.memo(function CodeBlock({
         )}
       </div>
 
-      {/* Fullscreen Preview Modal */}
       {isHtml && (
         <HtmlPreviewModal
           isOpen={isModalOpen}

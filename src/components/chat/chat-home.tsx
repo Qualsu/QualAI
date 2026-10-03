@@ -1,8 +1,7 @@
 'use client';
 
-import { fetchSessionHistory, sendChatMessageStream } from "@/app/api/chat";
+import { sendChatMessageStream } from "@/app/api/chat";
 import type { AttachedImage, ChatMessage } from "@/config/types";
-import ChatPageSkeleton from "@/components/chat/chat-page-skeleton";
 import ModelSelector from "@/components/chat/model-selector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +9,9 @@ import { useModel } from "@/lib/model-context";
 import { useLimits } from "@/lib/limits-context";
 import { useUser } from "@clerk/nextjs";
 import { AlertCircle, ArrowUpIcon, Check, Copy, ImagePlus } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { APP_NAME, images, pages } from "@/config";
 import { processImageFile } from "@/lib/image-utils";
 import { ImageAttachmentBar } from "@/components/chat/image-attachment-bar";
 import { ImageLightbox, MessageImages } from "@/components/chat/chat-images";
@@ -19,6 +19,7 @@ import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { sanitizeChatError } from "@/lib/utils";
 
 const CHAT_SESSIONS_UPDATED_EVENT = "chat-sessions-updated";
+const NEW_CHAT_EVENT = "new-chat";
 const TYPING_PLACEHOLDER = "__typing__";
 
 function TypingDots() {
@@ -40,16 +41,13 @@ function TypingDots() {
   );
 }
 
-export default function Chat() {
+export default function ChatHome() {
   const { user } = useUser();
-  const params = useParams<{ sessionId: string }>();
-  const sessionId = params?.sessionId;
-
   const { model, setModel, isCurrentModelVision } = useModel();
   const { checkLimit, recordUsage, rollbackUsage, getInfoForModel, refreshLimits } = useLimits();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,23 +70,27 @@ export default function Chat() {
   };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const modelRef = useRef(model);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
-
-  useEffect(() => {
-    modelRef.current = model;
-  }, [model]);
 
   const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
-  useEffect(() => {
-    if (!isLoading && messages.length > 0) {
-      scrollToBottom("smooth");
+  const resetToNewChat = () => {
+    setMessages([]);
+    setSessionId(null);
+    setMessage("");
+    setAttachedImages([]);
+    setError(null);
+    setIsSending(false);
+    if (typeof window !== "undefined") {
+      if (window.location.pathname !== pages.ROOT) {
+        window.history.pushState(null, "", pages.ROOT);
+      }
+      window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
     }
-  }, [messages, isLoading]);
+  };
 
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
@@ -187,122 +189,37 @@ export default function Chat() {
     }
   };
 
-  const accountId = user?.id ?? "guest";
-
   useEffect(() => {
-    if (!sessionId) {
-      setIsLoading(false);
-      return;
-    }
+    const handleNewChatEvent = () => {
+      resetToNewChat();
+    };
 
-    let isMounted = true;
-    let pollInterval: number | null = null;
-    let pollCount = 0;
-
-    const checkPendingAssistantReply = (history: ChatMessage[], modelId?: string) => {
-      const lastMsg = history[history.length - 1];
-      if (lastMsg && lastMsg.role === "user") {
-        setMessages([
-          ...history,
-          { role: "assistant", content: TYPING_PLACEHOLDER, model_id: modelId || modelRef.current },
-        ]);
-        setIsSending(true);
-
-        pollInterval = window.setInterval(async () => {
-          pollCount += 1;
-          if (pollCount > 6) {
-            if (pollInterval) clearInterval(pollInterval);
-            if (isMounted) {
-              setIsSending(false);
-              setMessages((prev) =>
-                prev.filter((m) => m.content !== TYPING_PLACEHOLDER)
-              );
-            }
-            return;
-          }
-
-          try {
-            const data = await fetchSessionHistory({
-              account_id: accountId,
-              session_id: sessionId,
-            });
-            if (!isMounted) return;
-
-            const newLastMsg = data.history[data.history.length - 1];
-            if (newLastMsg && newLastMsg.role === "assistant") {
-              if (pollInterval) clearInterval(pollInterval);
-              setMessages(data.history);
-              setIsSending(false);
-              if (data.model_id) setModel(data.model_id);
-            }
-          } catch {
-            if (pollInterval) clearInterval(pollInterval);
-            if (isMounted) {
-              setIsSending(false);
-              setMessages((prev) =>
-                prev.filter((m) => m.content !== TYPING_PLACEHOLDER)
-              );
-            }
-          }
-        }, 1500);
-      } else {
-        setMessages(history);
-        setIsSending(false);
+    const handlePopState = () => {
+      if (typeof window !== "undefined" && window.location.pathname === pages.ROOT) {
+        resetToNewChat();
       }
     };
 
-    const loadSession = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await fetchSessionHistory({
-          account_id: accountId,
-          session_id: sessionId,
-        });
-
-        if (isMounted) {
-          setError(null);
-          checkPendingAssistantReply(data.history, data.model_id);
-          if (data.model_id) {
-            setModel(data.model_id);
-          }
-        }
-      } catch (error: unknown) {
-        if (isMounted) {
-          setMessages([]);
-          const status =
-            typeof error === "object" &&
-            error !== null &&
-            "response" in error &&
-            typeof (error as { response?: unknown }).response === "object" &&
-            (error as { response?: { status?: number } }).response?.status;
-
-          if (status === 404) {
-            setError(null);
-          } else {
-            setError("Не удалось загрузить историю этого чата.");
-          }
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void loadSession();
+    window.addEventListener(NEW_CHAT_EVENT, handleNewChatEvent);
+    window.addEventListener("popstate", handlePopState);
 
     return () => {
-      isMounted = false;
-      if (pollInterval) {
-        window.clearInterval(pollInterval);
-      }
+      window.removeEventListener(NEW_CHAT_EVENT, handleNewChatEvent);
+      window.removeEventListener("popstate", handlePopState);
     };
-  }, [accountId, sessionId, setModel]);
+  }, []);
 
-  const handleSend = async () => {
-    const trimmedMessage = message.trim();
-    if ((!trimmedMessage && attachedImages.length === 0) || !sessionId || isSending || isProcessingImages) {
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom("smooth");
+    }
+  }, [messages]);
+
+  const accountId = user?.id ?? "guest";
+
+  const handleSend = async (textToSend?: string) => {
+    const promptToSend = (textToSend ?? message).trim();
+    if ((!promptToSend && attachedImages.length === 0) || isSending || isProcessingImages) {
       return;
     }
 
@@ -341,7 +258,7 @@ export default function Chat() {
       ...prev,
       {
         role: "user",
-        content: trimmedMessage,
+        content: promptToSend,
         images: imagesToSend.length > 0 ? imagesToSend : undefined,
       },
       { role: "assistant", content: TYPING_PLACEHOLDER, model_id: activeModel },
@@ -351,13 +268,18 @@ export default function Chat() {
       const response = await sendChatMessageStream(
         {
           account_id: accountId,
-          message: trimmedMessage,
+          message: promptToSend,
           model_id: activeModel,
-          session_id: sessionId,
+          session_id: sessionId ?? undefined,
           images: imagesToSend.length > 0 ? imagesToSend : undefined,
         },
         (initData) => {
           setModel(initData.model_id);
+          setSessionId(initData.session_id);
+          if (typeof window !== "undefined") {
+            window.history.pushState(null, "", `/${initData.session_id}`);
+            window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
+          }
         },
         (chunk) => {
           setMessages((prev) => {
@@ -378,7 +300,6 @@ export default function Chat() {
 
       setModel(response.model_id);
       void refreshLimits();
-
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(CHAT_SESSIONS_UPDATED_EVENT));
       }
@@ -401,18 +322,9 @@ export default function Chat() {
     : firstUserMsg?.images && firstUserMsg.images.length > 0
     ? "📷 Изображение"
     : sessionId
-    ? `Чат ${typeof sessionId === 'string' ? sessionId.slice(0, 8) : sessionId}`
-    : "Чат";
-  const pageTitle = `${chatTitle} | Q.AI`;
-
-  if (isLoading) {
-    return (
-      <>
-        <title>Загрузка... | Q.AI</title>
-        <ChatPageSkeleton />
-      </>
-    );
-  }
+    ? `Чат ${sessionId.slice(0, 8)}`
+    : APP_NAME;
+  const pageTitle = messages.length > 0 ? `${APP_NAME} | ${chatTitle}` : APP_NAME;
 
   return (
     <div
@@ -444,9 +356,21 @@ export default function Chat() {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center gap-3 py-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">История чата пуста</h2>
-            <p className="text-white/60 text-sm max-w-sm">Отправь сообщение ниже, чтобы начать диалог с искусственным интеллектом.</p>
+          <div className="h-full max-w-4xl mx-auto flex md:flex-row flex-col items-center justify-center py-8 gap-3">
+            <div className="relative">
+              <div className="pointer-events-none absolute -inset-4 rounded-full bg-[#76a4ff]/20 blur-2xl animate-pulse" />
+              <Image
+                src={images.MINI_LOGO}
+                width={35}
+                height={35}
+                alt={APP_NAME}
+                className="relative drop-shadow-[0_12px_30px_rgba(118,164,255,0.35)]"
+              />
+            </div>
+
+            <h1 className="text-4xl font-bold text-center tracking-tight leading-tight text-white">
+              Кодим так, что Интернет плачет
+            </h1>
           </div>
         ) : (
           <div className="max-w-4xl mx-auto flex flex-col gap-6">
@@ -525,7 +449,7 @@ export default function Chat() {
               <Button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading || isSending || isProcessingImages}
+                disabled={isSending || isProcessingImages}
                 size="icon"
                 variant="ghost"
                 className="rounded-full h-10 w-10 sm:h-11 sm:w-11 text-white/70 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
@@ -544,22 +468,20 @@ export default function Chat() {
                     ? `Дневной лимит для ${getInfoForModel(model).shortTitle} исчерпан (${getInfoForModel(model).limit}/${getInfoForModel(model).limit})...`
                     : attachedImages.length > 0
                     ? "Добавь описание или нажми Enter для отправки..."
-                    : "Сообщение..."
+                    : "Спроси о чём угодно или попроси написать код..."
                 }
-                disabled={isLoading || isSending || !sessionId}
+                disabled={isSending}
                 className="flex-1 bg-transparent border-0 text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:ring-offset-0 px-2 sm:px-3 py-2 text-sm sm:text-base"
               />
               <Button
-                onClick={handleSend}
-                size="icon"
+                onClick={() => handleSend()}
                 disabled={
-                  isLoading ||
                   isSending ||
                   isProcessingImages ||
-                  !sessionId ||
                   (!message.trim() && attachedImages.length === 0) ||
                   getInfoForModel(model).isExceeded
                 }
+                size="icon"
                 className="rounded-full h-10 w-10 sm:h-11 sm:w-11 bg-[#76a4ff] hover:bg-[#6094ff] text-white transition-colors disabled:opacity-30 shrink-0 cursor-pointer"
                 aria-label="Отправить"
               >

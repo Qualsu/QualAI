@@ -1,7 +1,7 @@
 "use client";
 
 import type { HtmlPreviewModalProps, HtmlPreviewViewport } from "@/config/types";
-import { HtmlIframe } from "@/components/html-iframe";
+import { HtmlIframe } from "@/components/markdown/html-iframe";
 import { ExternalLink, Globe, Monitor, RotateCw, Smartphone, Tablet, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -54,12 +54,10 @@ export function HtmlPreviewModal({
       className="fixed inset-0 z-[100] flex flex-col bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
       onClick={onClose}
     >
-      {/* Top Navbar */}
       <div
         className="flex items-center justify-between px-4 py-2.5 bg-[#14161a]/95 border-b border-white/10 shrink-0 select-none z-10"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Left: Title & Badge */}
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="p-1.5 rounded-lg bg-[#76a4ff]/15 text-[#76a4ff]">
             <Globe size={18} />
@@ -72,7 +70,6 @@ export function HtmlPreviewModal({
           </div>
         </div>
 
-        {/* Center: Device Viewport Switcher */}
         <div className="flex items-center p-1 rounded-xl bg-white/5 border border-white/10">
           <button
             type="button"
@@ -115,7 +112,6 @@ export function HtmlPreviewModal({
           </button>
         </div>
 
-        {/* Right: Actions */}
         <div className="flex items-center gap-1.5">
           <button
             type="button"
@@ -148,7 +144,6 @@ export function HtmlPreviewModal({
         </div>
       </div>
 
-      {/* Frame Container */}
       <div
         className="flex-1 w-full flex items-center justify-center p-3 sm:p-5 overflow-hidden"
         onClick={(e) => e.stopPropagation()}

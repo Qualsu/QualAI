@@ -18,7 +18,6 @@ export function ImageAttachmentBar({
 
   return (
     <div className="flex flex-col gap-2 px-3 pt-2 pb-1 border-b border-white/10">
-      {/* Warning banner if attached images present but current model lacks vision */}
       {!isVisionSupported && images.length > 0 && (
         <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs animate-in fade-in duration-200">
           <div className="flex items-center gap-1.5 min-w-0">
@@ -38,7 +37,6 @@ export function ImageAttachmentBar({
         </div>
       )}
 
-      {/* Thumbnails row */}
       <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-thin">
         {images.map((img) => (
           <div
