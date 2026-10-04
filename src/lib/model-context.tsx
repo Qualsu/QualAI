@@ -9,41 +9,17 @@ import type { ModelContextType } from "@/config/types";
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
-function getBadge(id: string, name?: string, givenBadge?: string | null): string | null {
-  if (givenBadge && typeof givenBadge === "string" && givenBadge.trim() !== "") {
-    return givenBadge.trim();
-  }
-
-  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
-  const cleanName = (name || "").toLowerCase().replace(/[-_\s]/g, "");
-
-  if (cleanId.includes("micro") || cleanName.includes("micro")) {
-    return "Fast";
-  }
-
-  if (
-    cleanId === "qualai2" ||
-    cleanName === "qualai2"
-  ) {
-    return "Best";
-  }
-
-  const def = DEFAULT_MODELS.find((m) => {
-    const defId = m.id.toLowerCase().replace(/[-_\s]/g, "");
-    const defName = m.name.toLowerCase().replace(/[-_\s]/g, "");
-    return defId === cleanId || defName === cleanName || defId === cleanName || defName === cleanId;
-  });
-
-  return def?.badge || null;
-}
-
 function getVision(id: string, name?: string, givenVision?: boolean): boolean {
   if (typeof givenVision === "boolean") {
     return givenVision;
   }
-  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
-  const cleanName = (name || "").toLowerCase().replace(/[-_\s]/g, "");
+  const cleanId = (id || "").toLowerCase().replace(/[-_\s.]/g, "");
+  const cleanName = (name || "").toLowerCase().replace(/[-_\s.]/g, "");
   return (
+    cleanId === "qai3" ||
+    cleanName === "qai3" ||
+    cleanId === "qai3mini" ||
+    cleanName === "qai3mini" ||
     cleanId === "qualai2" ||
     cleanName === "qualai2" ||
     cleanId === "qualai2code" ||
@@ -57,11 +33,14 @@ function getCategory(id: string, name?: string, givenCategory?: string | null): 
   if (givenCategory && typeof givenCategory === "string" && givenCategory.trim() !== "") {
     return givenCategory.trim();
   }
-  const cleanId = (id || "").toLowerCase().replace(/[-_\s]/g, "");
-  if (cleanId === "qualai1" || cleanId === "qualai1mini" || cleanId === "qualai15micro") {
-    return "old";
+  const cleanId = (id || "").toLowerCase().replace(/[-_\s.]/g, "");
+  if (
+    cleanId === "qai3" ||
+    cleanId === "qai3mini"
+  ) {
+    return "main";
   }
-  return "main";
+  return "old";
 }
 
 function normalizeModels(dataModels: unknown): ModelItem[] {
@@ -75,7 +54,6 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
       return (dataModels as string[]).map((id) => ({
         id,
         name: id,
-        badge: getBadge(id, id, null),
         category: getCategory(id, id, null),
         vision: getVision(id, id),
       }));
@@ -85,7 +63,6 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
       .map((m) => ({
         ...m,
         name: m.name || m.id,
-        badge: getBadge(m.id, m.name, m.badge),
         category: getCategory(m.id, m.name, m.category),
         vision: getVision(m.id, m.name, m.vision),
       }));
@@ -98,7 +75,6 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
         items.push({
           id: key,
           name: val,
-          badge: getBadge(key, val, null),
           category: getCategory(key, val, null),
           vision: getVision(key, val),
         });
@@ -106,13 +82,11 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
         const itemObj = val as Record<string, unknown>;
         const id = (itemObj.id as string) || key;
         const name = (itemObj.name as string) || (itemObj.label as string) || id;
-        const givenBadge = (itemObj.badge as string) || null;
         const givenCategory = (itemObj.category as string) || null;
         const givenVision = typeof itemObj.vision === "boolean" ? itemObj.vision : undefined;
         items.push({
           id,
           name,
-          badge: getBadge(id, name, givenBadge),
           category: getCategory(id, name, givenCategory),
           vision: getVision(id, name, givenVision),
         });
@@ -125,12 +99,12 @@ function normalizeModels(dataModels: unknown): ModelItem[] {
 }
 
 export function ModelProvider({ children }: { children: React.ReactNode }) {
-  const [model, setModel] = useState<string>("QualAI-2");
+  const [model, setModel] = useState<string>("qai-3");
   const [models, setModels] = useState<ModelItem[]>(DEFAULT_MODELS);
 
   const getModelLabel = (modelId: string): string => {
     const found = models.find((m) => m.id === modelId || m.name === modelId);
-    return found ? found.name : modelId || "QualAI";
+    return found ? found.name : modelId || "Q.AI";
   };
 
   const isVisionSupported = (modelId?: string): boolean => {
@@ -154,11 +128,16 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
     }
 
     const storedModel = window.localStorage.getItem(MODEL_STORAGE_KEY);
-    if (storedModel && storedModel.startsWith("QualAI")) {
+    if (
+      storedModel &&
+      (storedModel.startsWith("QualAI") ||
+        storedModel.startsWith("qai-") ||
+        storedModel.startsWith("Q.AI"))
+    ) {
       setModel(storedModel);
     } else {
-      setModel("QualAI-2");
-      window.localStorage.setItem(MODEL_STORAGE_KEY, "QualAI-2");
+      setModel("qai-3");
+      window.localStorage.setItem(MODEL_STORAGE_KEY, "qai-3");
     }
   }, []);
 
@@ -178,7 +157,7 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
           if (prev && parsedModels.some((m) => m.id === prev)) {
             return prev;
           }
-          return data.default_model_id || "QualAI-2";
+          return data.default_model_id || "qai-3";
         });
       } catch {
         // Keep fallback options.

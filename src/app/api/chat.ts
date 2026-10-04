@@ -1,4 +1,5 @@
 import { apiClient } from "@/app/api/client";
+import { sanitizeChatError } from "@/lib/utils";
 import type {
   AccountRequest,
   AllHistoryResponse,
@@ -6,6 +7,7 @@ import type {
   ChatRequest,
   ChatResponse,
   ClearSessionResponse,
+  ServerLimitsResponse,
   SessionHistoryResponse,
   SessionRequest,
 } from "@/config/types";
@@ -20,7 +22,7 @@ export async function sendChatMessage(payload: ChatRequest): Promise<ChatRespons
     if (typeof error === "object" && error !== null && "response" in error) {
       const resp = (error as { response?: { status?: number; data?: { detail?: string } } }).response;
       if (resp?.data?.detail) {
-        throw new Error(resp.data.detail);
+        throw new Error(sanitizeChatError(resp.data.detail));
       }
       if (resp?.status === 503) {
         throw new Error("Сервер перегружен (503). В очереди уже максимальное количество запросов. Попробуйте позже.");
@@ -72,7 +74,7 @@ export async function sendChatMessageStream(
     }
 
     if (errorDetail) {
-      throw new Error(errorDetail);
+      throw new Error(sanitizeChatError(errorDetail));
     }
 
     if (response.status === 503) {
@@ -84,7 +86,7 @@ export async function sendChatMessageStream(
     if (response.status === 504) {
       throw new Error("Превышено время ожидания генерации ответа (300 сек).");
     }
-    throw new Error(`Ошибка запроса к серверу (${response.status})`);
+    throw new Error("Не удалось отправить запрос. Попробуйте позже.");
   }
 
   const reader = response.body.getReader();
@@ -117,7 +119,7 @@ export async function sendChatMessageStream(
         } else if (data.type === "done") {
           sessionInfo = { session_id: data.session_id, model_id: data.model_id };
         } else if (data.type === "error") {
-          throw new Error(data.detail || "Произошла ошибка при генерации ответа");
+          throw new Error(sanitizeChatError(data.detail));
         }
       } catch (err) {
         if (err instanceof Error) {
@@ -152,5 +154,10 @@ export async function clearChatSession(payload: SessionRequest): Promise<ClearSe
 
 export async function fetchAvailableModels(): Promise<AvailableModelsResponse> {
   const { data } = await apiClient.get<AvailableModelsResponse>("/models");
+  return data;
+}
+
+export async function fetchServerLimits(account_id: string): Promise<ServerLimitsResponse> {
+  const { data } = await apiClient.post<ServerLimitsResponse>("/limits", { account_id });
   return data;
 }

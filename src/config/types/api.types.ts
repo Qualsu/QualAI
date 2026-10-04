@@ -52,3 +52,27 @@ export type ClearSessionResponse = {
   account_id: string;
   session_id: string;
 };
+
+export type DailyLimitGroupData = {
+  limit: number;
+  used: number;
+  remaining: number;
+};
+
+export type ServerDailyLimits = {
+  date: string;
+  reset_at: string;
+  main: DailyLimitGroupData;
+  old: DailyLimitGroupData;
+};
+
+export type ServerLimitsResponse = {
+  account_id: string;
+  tier?: string;
+  premium?: number;
+  period?: string;
+  limit?: number;
+  used?: number;
+  remaining?: number;
+  daily?: ServerDailyLimits;
+};

@@ -10,6 +10,7 @@ export function ImageAttachmentBar({
   disabled,
   isVisionSupported,
   onSwitchToVisionModel,
+  recommendedModelName = "Q.AI 3",
 }: ImageAttachmentBarProps) {
   if (images.length === 0 && !isProcessing) {
     return null;
@@ -17,7 +18,6 @@ export function ImageAttachmentBar({
 
   return (
     <div className="flex flex-col gap-2 px-3 pt-2 pb-1 border-b border-white/10">
-      {/* Warning banner if attached images present but current model lacks vision */}
       {!isVisionSupported && images.length > 0 && (
         <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs animate-in fade-in duration-200">
           <div className="flex items-center gap-1.5 min-w-0">
@@ -31,18 +31,17 @@ export function ImageAttachmentBar({
               className="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 text-amber-100 font-medium text-[11px] border border-amber-500/40 transition-colors flex items-center gap-1 cursor-pointer"
             >
               <Sparkles size={12} className="shrink-0" />
-              <span>QualAI-2</span>
+              <span>{recommendedModelName}</span>
             </button>
           )}
         </div>
       )}
 
-      {/* Thumbnails row */}
       <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-thin">
         {images.map((img) => (
           <div
             key={img.id}
-            className="group relative shrink-0 w-16 h-16 rounded-xl overflow-hidden border border-white/20 bg-black/40 shadow-sm"
+            className="group relative shrink-0 w-16 h-16 rounded-xl overflow-hidden shadow-sm"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -64,8 +63,8 @@ export function ImageAttachmentBar({
         ))}
 
         {isProcessing && (
-          <div className="shrink-0 w-16 h-16 rounded-xl border border-white/20 bg-white/5 flex flex-col items-center justify-center text-white/60 gap-1">
-            <Loader2 size={16} className="animate-spin text-purple-400" />
+          <div className="shrink-0 w-16 h-16 rounded-xl bg-white/5 flex flex-col items-center justify-center text-white/60 gap-1">
+            <Loader2 size={16} className="animate-spin text-[#76a4ff]" />
             <span className="text-[10px]">Сжатие...</span>
           </div>
         )}

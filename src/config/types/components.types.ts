@@ -56,4 +56,71 @@ export type ImageAttachmentBarProps = {
   disabled?: boolean;
   isVisionSupported: boolean;
   onSwitchToVisionModel?: () => void;
+  recommendedModelName?: string;
 };
+
+export type CodeBlockProps = {
+  code: string;
+  language?: string;
+  className?: string;
+};
+
+export type MarkdownRendererProps = {
+  content: string;
+  className?: string;
+};
+
+export type HtmlPreviewViewport = "desktop" | "tablet" | "mobile";
+
+export type HtmlPreviewModalProps = {
+  srcDoc: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onOpenNewTab: () => void;
+  title?: string;
+};
+
+export type HtmlIframeProps = {
+  srcDoc: string;
+  className?: string;
+  title?: string;
+  refreshKey?: number;
+};
+
+export type LandingFeature = {
+  icon: string;
+  title: string;
+  description: string;
+};
+
+export type LandingModelItem = {
+  name: string;
+  badge: string;
+  description: string;
+  highlights?: string[];
+};
+
+export type LandingPageProps = {
+  className?: string;
+};
+
+export type LandingNavbarProps = {
+  className?: string;
+};
+
+export type LandingHeaderProps = {
+  className?: string;
+};
+
+export type LandingFeaturesProps = {
+  className?: string;
+};
+
+export type LandingModelsProps = {
+  className?: string;
+};
+
+export type LandingFooterProps = {
+  className?: string;
+};
+

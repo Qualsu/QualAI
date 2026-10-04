@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "@/components/navbar";
+import Navbar from "@/components/layout/navbar";
 import { Menu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { APP_NAME, images, pages } from "@/config";
-
-import ModelSelector from "@/components/model-selector";
+import ModelSelector from "@/components/chat/model-selector";
 import type { AppShellProps } from "@/config/types";
-
 
 export default function AppShell({ children }: AppShellProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -36,8 +34,7 @@ export default function AppShell({ children }: AppShellProps) {
           isCollapsed ? "md:ml-20" : "md:ml-72"
         }`}
       >
-        {/* Mobile top bar */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-[#161118]/95 backdrop-blur-2xl px-3 sm:px-4 py-2 border-b border-white/10 shadow-lg">
+        <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-[#17191c]/95 backdrop-blur-2xl px-3 sm:px-4 py-2 border-b border-white/10 shadow-lg">
           <div className="flex items-center gap-2.5">
             <button
               type="button"
