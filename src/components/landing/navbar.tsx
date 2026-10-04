@@ -20,18 +20,6 @@ export default function LandingNavbar({ className }: LandingNavbarProps) {
           />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-white/70">
-          <a href={pages.ANCHORS.FEATURES} className="hover:text-white transition-colors">
-            Возможности
-          </a>
-          <a href={pages.ANCHORS.MODELS} className="hover:text-white transition-colors">
-            Модели
-          </a>
-          <a href={pages.ANCHORS.PREVIEW} className="hover:text-white transition-colors">
-            Пример диалога
-          </a>
-        </nav>
-
         <div className="flex items-center gap-3">
           <Link
             href={pages.AUTH.SIGN_IN}

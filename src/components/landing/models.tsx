@@ -9,7 +9,7 @@ import type { LandingModelItem, LandingModelsProps } from "@/config/types";
 const MODELS: LandingModelItem[] = [
   {
     name: "Q.AI 3",
-    badge: "Флагман со зрением",
+    badge: "Флагман",
     description: "Основная модель для сложных вопросов, глубокого анализа, работы с текстами и распознавания любых изображений.",
     highlights: [
       "Распознавание фото, документов и графиков",
@@ -41,7 +41,7 @@ export default function LandingModels({ className }: LandingModelsProps) {
             Две модели для любых ваших задач
           </h2>
           <p className="mt-3 text-sm sm:text-base text-white/60">
-            Флагман со зрением для глубокого понимания и сверхбыстрая версия для мгновенных ответов
+            Флагман для глубокого понимания и сверхбыстрая версия для мгновенных ответов
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export default function LandingModels({ className }: LandingModelsProps) {
                   </p>
 
                   {model.highlights && (
-                    <ul className="space-y-2.5 mb-6">
+                    <ul className="space-y-2.5">
                       {model.highlights.map((h, hIdx) => (
                         <li key={hIdx} className="flex items-center gap-2.5 text-xs sm:text-sm text-white/80">
                           <CheckCircle2 size={16} className={isFlagship ? "text-[#76a4ff] shrink-0" : "text-cyan-400 shrink-0"} />
@@ -95,19 +95,6 @@ export default function LandingModels({ className }: LandingModelsProps) {
                       ))}
                     </ul>
                   )}
-                </div>
-
-                <div className="pt-5 border-t border-white/10 flex items-center justify-between">
-                  <span className="text-xs text-white/50 flex items-center gap-1.5">
-                    <Check size={14} className="text-[#76a4ff]" />
-                    Включено в бесплатный тариф
-                  </span>
-                  <Link
-                    href={pages.AUTH.SIGN_UP}
-                    className="text-xs font-semibold text-[#76a4ff] hover:text-[#a0c2ff] transition-colors flex items-center gap-1"
-                  >
-                    Попробовать →
-                  </Link>
                 </div>
               </div>
             );

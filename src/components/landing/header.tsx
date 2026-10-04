@@ -61,7 +61,7 @@ export default function LandingHeader({ className }: LandingHeaderProps) {
               </div>
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/10 text-xs text-white/70">
                 <Image src={images.FAVICON} width={14} height={14} alt="" />
-                <span>Q.AI 3 · Текст и фото</span>
+                <span>Q.AI 3 </span>
               </div>
               <div className="text-xs text-[#76a4ff] font-medium hidden sm:flex items-center gap-1">
                 <Zap size={13} />
